@@ -18,7 +18,7 @@ metadata:
   labels:
     control-plane: gsuite-controller-manager
   name: gsuite-controller-manager
-  namespace: knative-sources
+  namespace: gsuite-sources
 spec:
   selector:
     matchLabels:
@@ -35,6 +35,8 @@ spec:
           env:
             - name: SHEETS_RA_IMAGE
               value: github.com/nachocano/gsuite-source/cmd/sheets_receive_adapter
+            - name: CALENDAR_RA_IMAGE
+              value: github.com/nachocano/gsuite-source/cmd/calendar_receive_adapter
           resources:
             limits:
               cpu: 100m

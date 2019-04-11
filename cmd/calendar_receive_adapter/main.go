@@ -18,7 +18,7 @@ package main
 
 import (
 	"flag"
-	"github.com/nachocano/gsuite-source/pkg/adapter/sheets"
+	"github.com/nachocano/gsuite-source/pkg/adapter/calendar"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
 	"log"
@@ -38,8 +38,6 @@ func main() {
 
 	ctx := context.Background()
 
-	log.Printf("Starting sheets receive adapter with sink: %s", sink)
-
 	if sink == nil || *sink == "" {
 		log.Fatalf("No sink given")
 	}
@@ -49,10 +47,9 @@ func main() {
 		port = "8080"
 	}
 
-	log.Print("Creating server")
-	ra, err := sheets.New(*sink)
+	ra, err := calendar.New(*sink)
 	if err != nil {
-		log.Fatalf("Failed to create sheets adapter: %s", err.Error())
+		log.Fatalf("Failed to create calendar adapter: %s", err.Error())
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

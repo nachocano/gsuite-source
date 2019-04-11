@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package sheets
+package calendar
 
 import (
 	"context"
@@ -28,7 +28,7 @@ import (
 	"github.com/knative/pkg/logging"
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	sourcesv1alpha1 "github.com/nachocano/gsuite-source/pkg/apis/sources/v1alpha1"
-	"github.com/nachocano/gsuite-source/pkg/reconciler/sheets/resources"
+	"github.com/nachocano/gsuite-source/pkg/reconciler/calendar/resources"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -46,12 +46,12 @@ import (
 const (
 	// controllerAgentName is the string used by this controller to identify
 	// itself when creating events.
-	controllerAgentName = "sheets-source-controller"
-	raImageEnvVar       = "SHEETS_RA_IMAGE"
+	controllerAgentName = "calendar-source-controller"
+	raImageEnvVar       = "CALENDAR_RA_IMAGE"
 	finalizerName       = controllerAgentName
 )
 
-// Add creates a new SheetsSource Controller and adds it to the
+// Add creates a new CalendarSource Controller and adds it to the
 // Manager with default RBAC. The Manager will set fields on the
 // Controller and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -60,7 +60,7 @@ func Add(mgr manager.Manager) error {
 		return fmt.Errorf("required environment variable %q not defined", raImageEnvVar)
 	}
 
-	log.Println("Adding the Sheets Source Controller")
+	log.Println("Adding the Calendar Source Controller")
 	p := &sdk.Provider{
 		AgentName: controllerAgentName,
 		Parent:    &sourcesv1alpha1.SheetsSource{},
@@ -83,15 +83,15 @@ type reconciler struct {
 	receiveAdapterImage string
 }
 
-// Reconcile reads that state of the cluster for a SheetsSource
+// Reconcile reads that state of the cluster for a CalendarSource
 // object and makes changes based on the state read and what is in the
-// SheetsSource.Spec.
+// CalendarSource.Spec.
 func (r *reconciler) Reconcile(ctx context.Context, object runtime.Object) error {
 	logger := logging.FromContext(ctx)
 
-	source, ok := object.(*sourcesv1alpha1.SheetsSource)
+	source, ok := object.(*sourcesv1alpha1.CalendarSource)
 	if !ok {
-		logger.Errorf("could not find Sheets source %v", object)
+		logger.Errorf("could not find Calendar source %v", object)
 		return nil
 	}
 
@@ -112,7 +112,7 @@ func (r *reconciler) Reconcile(ctx context.Context, object runtime.Object) error
 	return reconcileErr
 }
 
-func (r *reconciler) reconcile(ctx context.Context, source *sourcesv1alpha1.SheetsSource) error {
+func (r *reconciler) reconcile(ctx context.Context, source *sourcesv1alpha1.CalendarSource) error {
 	source.Status.InitializeConditions()
 
 	_, _, err := r.secretsFrom(ctx, source)
@@ -142,12 +142,12 @@ func (r *reconciler) reconcile(ctx context.Context, source *sourcesv1alpha1.Shee
 	return nil
 }
 
-func (r *reconciler) finalize(ctx context.Context, source *sourcesv1alpha1.SheetsSource) error {
+func (r *reconciler) finalize(ctx context.Context, source *sourcesv1alpha1.CalendarSource) error {
 	r.removeFinalizer(source)
 	return nil
 }
 
-func (r *reconciler) domainFrom(ksvc *servingv1alpha1.Service, source *sourcesv1alpha1.SheetsSource) (string, error) {
+func (r *reconciler) domainFrom(ksvc *servingv1alpha1.Service, source *sourcesv1alpha1.CalendarSource) (string, error) {
 	routeCondition := ksvc.Status.GetCondition(servingv1alpha1.ServiceConditionRoutesReady)
 	receiveAdapterDomain := ksvc.Status.Domain
 	if routeCondition != nil && routeCondition.Status == corev1.ConditionTrue && receiveAdapterDomain != "" {
@@ -158,7 +158,7 @@ func (r *reconciler) domainFrom(ksvc *servingv1alpha1.Service, source *sourcesv1
 	return "", err
 }
 
-func (r *reconciler) reconcileService(ctx context.Context, source *sourcesv1alpha1.SheetsSource) (*servingv1alpha1.Service, error) {
+func (r *reconciler) reconcileService(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (*servingv1alpha1.Service, error) {
 	current, err := r.getService(ctx, source)
 
 	// If the resource doesn't exist, we'll create it.
@@ -180,7 +180,7 @@ func (r *reconciler) reconcileService(ctx context.Context, source *sourcesv1alph
 	return current, nil
 }
 
-func (r *reconciler) sinkURIFrom(ctx context.Context, source *sourcesv1alpha1.SheetsSource) (string, error) {
+func (r *reconciler) sinkURIFrom(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (string, error) {
 	uri, err := sinks.GetSinkURI(ctx, r.client, source.Spec.Sink, source.Namespace)
 	if err != nil {
 		source.Status.MarkNoSink("SinkNotFound", "%s", err)
@@ -189,7 +189,7 @@ func (r *reconciler) sinkURIFrom(ctx context.Context, source *sourcesv1alpha1.Sh
 	return uri, err
 }
 
-func (r *reconciler) secretsFrom(ctx context.Context, source *sourcesv1alpha1.SheetsSource) (string, string, error) {
+func (r *reconciler) secretsFrom(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (string, string, error) {
 
 	accessToken, err := r.secretFrom(ctx, source.Namespace, source.Spec.AccessToken.SecretKeyRef)
 	if err != nil {
@@ -222,7 +222,7 @@ func (r *reconciler) secretFrom(ctx context.Context, namespace string, secretKey
 	return string(secretVal), nil
 }
 
-func (r *reconciler) ownerRepoFrom(source *sourcesv1alpha1.SheetsSource) (string, string, error) {
+func (r *reconciler) ownerRepoFrom(source *sourcesv1alpha1.CalendarSource) (string, string, error) {
 	ownerAndRepository := source.Spec.OwnerAndRepository
 	components := strings.Split(ownerAndRepository, "/")
 	if len(components) > 2 {
@@ -242,7 +242,7 @@ func (r *reconciler) ownerRepoFrom(source *sourcesv1alpha1.SheetsSource) (string
 	return owner, repo, nil
 }
 
-func (r *reconciler) getService(ctx context.Context, source *sourcesv1alpha1.SheetsSource) (*servingv1alpha1.Service, error) {
+func (r *reconciler) getService(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (*servingv1alpha1.Service, error) {
 	list := &servingv1alpha1.ServiceList{}
 	err := r.client.List(ctx, &client.ListOptions{
 		Namespace:     source.Namespace,
@@ -268,7 +268,7 @@ func (r *reconciler) getService(ctx context.Context, source *sourcesv1alpha1.She
 	return nil, apierrors.NewNotFound(servingv1alpha1.Resource("services"), "")
 }
 
-func (r *reconciler) newService(source *sourcesv1alpha1.SheetsSource) (*servingv1alpha1.Service, error) {
+func (r *reconciler) newService(source *sourcesv1alpha1.CalendarSource) (*servingv1alpha1.Service, error) {
 	ksvc := resources.MakeService(source, r.receiveAdapterImage)
 	if err := controllerutil.SetControllerReference(source, ksvc, r.scheme); err != nil {
 		return nil, err
@@ -276,13 +276,13 @@ func (r *reconciler) newService(source *sourcesv1alpha1.SheetsSource) (*servingv
 	return ksvc, nil
 }
 
-func (r *reconciler) addFinalizer(s *sourcesv1alpha1.SheetsSource) {
+func (r *reconciler) addFinalizer(s *sourcesv1alpha1.CalendarSource) {
 	finalizers := sets.NewString(s.Finalizers...)
 	finalizers.Insert(finalizerName)
 	s.Finalizers = finalizers.List()
 }
 
-func (r *reconciler) removeFinalizer(s *sourcesv1alpha1.SheetsSource) {
+func (r *reconciler) removeFinalizer(s *sourcesv1alpha1.CalendarSource) {
 	finalizers := sets.NewString(s.Finalizers...)
 	finalizers.Delete(finalizerName)
 	s.Finalizers = finalizers.List()

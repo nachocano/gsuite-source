@@ -26,9 +26,9 @@ import (
 )
 
 // MakeService generates, but does not create, a Service for the given SheetsSource.
-func MakeService(source *sourcesv1alpha1.SheetsSource, receiveAdapterImage string) *servingv1alpha1.Service {
+func MakeService(source *sourcesv1alpha1.CalendarSource, receiveAdapterImage string) *servingv1alpha1.Service {
 	labels := map[string]string{
-		"receive-adapter": "calendar",
+		"receive-adapter": "sheets",
 	}
 	sinkURI := source.Status.SinkURI
 	env := []corev1.EnvVar{

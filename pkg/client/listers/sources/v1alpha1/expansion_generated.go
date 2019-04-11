@@ -17,6 +17,14 @@ limitations under the License.
 
 package v1alpha1
 
+// CalendarSourceListerExpansion allows custom methods to be added to
+// CalendarSourceLister.
+type CalendarSourceListerExpansion interface{}
+
+// CalendarSourceNamespaceListerExpansion allows custom methods to be added to
+// CalendarSourceNamespaceLister.
+type CalendarSourceNamespaceListerExpansion interface{}
+
 // SheetsSourceListerExpansion allows custom methods to be added to
 // SheetsSourceLister.
 type SheetsSourceListerExpansion interface{}

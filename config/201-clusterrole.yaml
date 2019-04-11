@@ -21,6 +21,7 @@ rules:
       - sources.nachocano.org
     resources:
       - sheetssources
+      - calendarsources
     verbs: &everything
       - get
       - list
@@ -33,6 +34,7 @@ rules:
       - sources.nachocano.org
     resources:
       - sheetssources/status
+      - calendarsources/status
     verbs:
       - get
       - update

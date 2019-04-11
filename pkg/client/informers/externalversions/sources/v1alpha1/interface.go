@@ -23,6 +23,8 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
+	// CalendarSources returns a CalendarSourceInformer.
+	CalendarSources() CalendarSourceInformer
 	// SheetsSources returns a SheetsSourceInformer.
 	SheetsSources() SheetsSourceInformer
 }
@@ -36,6 +38,11 @@ type version struct {
 // New returns a new Interface.
 func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakListOptions internalinterfaces.TweakListOptionsFunc) Interface {
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
+}
+
+// CalendarSources returns a CalendarSourceInformer.
+func (v *version) CalendarSources() CalendarSourceInformer {
+	return &calendarSourceInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
 // SheetsSources returns a SheetsSourceInformer.

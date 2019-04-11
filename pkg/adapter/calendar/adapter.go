@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package sheets
+package calendar
 
 import (
 	"context"
@@ -31,8 +31,6 @@ import (
 	"sync"
 )
 
-// Adapter converts incoming Sheets webhook events to CloudEvents and
-// then sends them to the specified Sink.
 type Adapter struct {
 	Sink   string
 	client client.Client
@@ -40,8 +38,6 @@ type Adapter struct {
 	initClientOnce sync.Once
 }
 
-// New creates an adapter to convert incoming Sheets events to CloudEvents and
-// then sends them to the specified Sink.
 func New(sinkURI string) (*Adapter, error) {
 	a := new(Adapter)
 	var err error
@@ -68,12 +64,11 @@ func (a *Adapter) Start(ctx context.Context, stopCh <-chan struct{}) error {
 	return nil
 }
 
-// HandleEvent is invoked whenever an event comes in from Sheets.
 func (a *Adapter) HandleEvent(payload interface{}, header http.Header) {
 	hdr := http.Header(header)
 	err := a.handleEvent(payload, hdr)
 	if err != nil {
-		log.Printf("unexpected error handling Sheets event: %s", err)
+		log.Printf("unexpected error handling Calendar event: %s", err)
 	}
 }
 
@@ -87,7 +82,7 @@ func (a *Adapter) handleEvent(payload interface{}, hdr http.Header) error {
 	}
 
 	cloudEventType := fmt.Sprintf("%s.%s", sourcesv1alpha1.SheetsSourceEventPrefix, "type")
-	source, err := sourceFromSheetsEvent("", payload)
+	source, err := sourceFromCalendarEvent("", payload)
 	if err != nil {
 		return err
 	}
@@ -104,8 +99,8 @@ func (a *Adapter) handleEvent(payload interface{}, hdr http.Header) error {
 	return err
 }
 
-func sourceFromSheetsEvent(sheetsEvent string, payload interface{}) (*types.URLRef, error) {
-	url := "/sheets-demo"
+func sourceFromCalendarEvent(sheetsEvent string, payload interface{}) (*types.URLRef, error) {
+	url := "/calendar-demo"
 	if url != "" {
 		source := types.ParseURLRef(url)
 		if source != nil {

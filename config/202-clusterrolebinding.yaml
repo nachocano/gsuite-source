@@ -23,4 +23,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: gsuite-controller-manager
-  namespace: knative-sources
+  namespace: gsuite-sources

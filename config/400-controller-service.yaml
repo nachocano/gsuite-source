@@ -16,7 +16,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: gsuite-controller
-  namespace: knative-sources
+  namespace: gsuite-sources
   labels:
     control-plane: gsuite-controller-manager
 spec:
