@@ -1,0 +1,71 @@
+required = [
+  "k8s.io/apimachinery/pkg/util/sets/types",
+  "k8s.io/code-generator/cmd/deepcopy-gen",
+  "k8s.io/code-generator/cmd/defaulter-gen",
+  "k8s.io/code-generator/cmd/client-gen",
+  "k8s.io/code-generator/cmd/lister-gen",
+  "k8s.io/code-generator/cmd/informer-gen",
+  "sigs.k8s.io/controller-runtime/pkg/client/config",
+  "sigs.k8s.io/controller-runtime/pkg/controller",
+  "sigs.k8s.io/controller-runtime/pkg/handler",
+  "sigs.k8s.io/controller-runtime/pkg/manager",
+  "sigs.k8s.io/controller-runtime/pkg/runtime/signals",
+  "sigs.k8s.io/controller-runtime/pkg/source",
+  "github.com/knative/test-infra/scripts",
+  "github.com/knative/test-infra/tools/dep-collector",
+  "github.com/knative/build/pkg/apis/build/v1alpha1",
+]
+
+[prune]
+  go-tests = true
+  unused-packages = true
+  non-go = true
+
+[[prune.project]]
+  name = "github.com/knative/test-infra"
+  non-go = false
+
+[[prune.project]]
+  name = "k8s.io/code-generator"
+  unused-packages = false
+  non-go = false
+
+[[constraint]]
+  name = "github.com/knative/serving"
+  # HEAD as of 2019-03-21
+  revision = "9a44df0e64edcb943c7edfe2d3eac2be41aa2316"
+  # revert revision when on v0.5.0, this is done to support a pkg update on webhooks context.
+  # See: https://github.com/knative/pkg/commit/60fdcbcabd2faeb34328d8b2725dc76c59189453
+  # version = "v0.5.0"
+
+[[constraint]]
+  name = "sigs.k8s.io/controller-runtime"
+  version = "=0.1.9"
+
+[[constraint]]
+  name = "github.com/knative/eventing-sources"
+  version = "=0.5.0"
+
+# Constrain the version of knative/pkg we would like to import.
+# This controls when we upgrade apis independently of Serving.
+[[constraint]]
+  name = "github.com/knative/pkg"
+  # HEAD as of 2019-03-21
+  revision = "60fdcbcabd2faeb34328d8b2725dc76c59189453"
+
+[[override]]
+  name = "k8s.io/api"
+  version = "kubernetes-1.12.6"
+
+[[override]]
+  name = "k8s.io/apimachinery"
+  version = "kubernetes-1.12.6"
+
+[[override]]
+  name = "k8s.io/code-generator"
+  version = "kubernetes-1.12.6"
+
+[[override]]
+  name = "k8s.io/client-go"
+  version = "kubernetes-1.12.6"
+
