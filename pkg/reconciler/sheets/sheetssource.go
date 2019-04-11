@@ -19,6 +19,7 @@ package sheets
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -59,6 +60,7 @@ func Add(mgr manager.Manager) error {
 		return fmt.Errorf("required environment variable %q not defined", raImageEnvVar)
 	}
 
+	log.Println("Adding the Sheets Source controller")
 	p := &sdk.Provider{
 		AgentName: controllerAgentName,
 		Parent:    &sourcesv1alpha1.SheetsSource{},
