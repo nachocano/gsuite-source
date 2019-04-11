@@ -39,7 +39,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Printf("Registering Components.")
+	log.Printf("Registering Components")
 
 	// Setup Scheme for all resources
 	if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
@@ -51,7 +51,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Printf("Starting GSuite Controller.")
+	log.Printf("Starting GSuite Controller")
 
 	// Start the Cmd
 	log.Fatal(mgr.Start(signals.SetupSignalHandler()))
