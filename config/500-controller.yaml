@@ -30,7 +30,7 @@ spec:
         control-plane: gsuite-controller-manager
     spec:
       containers:
-        - image: github.com/nachocano/gsuite-source/cmd/controller
+        - image: github.com/nachocano/gsuite-source/cmd/manager
           name: manager
           env:
             - name: SHEETS_RA_IMAGE

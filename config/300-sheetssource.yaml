@@ -42,7 +42,7 @@ spec:
           type: object
         spec:
           properties:
-            consumerKey:
+            accessToken:
               properties:
                 secretKeyRef:
                   type: object
@@ -52,29 +52,13 @@ spec:
                 enum:
                 - repo:push
                 - repo:fork
-                - repo:updated
-                - repo:commit_comment_created
-                - repo:commit_status_created
-                - repo:commit_status_updated
-                - pullrequest:created
-                - pullrequest:updated
-                - pullrequest:approved
-                - pullrequest:unapproved
-                - pullrequest:fulfilled
-                - pullrequest:rejected
-                - pullrequest:comment_created
-                - pullrequest:comment_updated
-                - pullrequest:comment_deleted
-                - issue:created
-                - issue:updated
-                - issue:comment_created
                 type: string
               minItems: 1
               type: array
             ownerAndRepository:
               minLength: 1
               type: string
-            consumerSecret:
+            secretToken:
               properties:
                 secretKeyRef:
                   type: object
@@ -86,8 +70,8 @@ spec:
           required:
           - ownerAndRepository
           - eventTypes
-          - consumerKey
-          - consumerSecret
+          - accessToken
+          - secretToken
           type: object
         status:
           properties:
@@ -114,8 +98,6 @@ spec:
                 type: object
               type: array
             sinkUri:
-              type: string
-            webhookUUIDKey:
               type: string
           type: object
   version: v1alpha1

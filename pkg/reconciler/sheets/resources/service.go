@@ -22,7 +22,7 @@ import (
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	sourcesv1alpha1 "github.com/nachocano/gsuite-source/pkg/apis/sources/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // MakeService generates, but does not create, a Service for the given SheetsSource.

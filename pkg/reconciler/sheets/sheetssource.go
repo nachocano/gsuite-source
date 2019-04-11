@@ -113,7 +113,7 @@ func (r *reconciler) Reconcile(ctx context.Context, object runtime.Object) error
 func (r *reconciler) reconcile(ctx context.Context, source *sourcesv1alpha1.SheetsSource) error {
 	source.Status.InitializeConditions()
 
-	accessToken, secretToken, err := r.secretsFrom(ctx, source)
+	_, _, err := r.secretsFrom(ctx, source)
 	if err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func (r *reconciler) reconcile(ctx context.Context, source *sourcesv1alpha1.Shee
 		return err
 	}
 
-	_, err := r.domainFrom(ksvc, source)
+	_, err = r.domainFrom(ksvc, source)
 	if err != nil {
 		// Returning nil on purpose as we will wait until the next reconciliation process is triggered.
 		return nil
@@ -155,7 +155,6 @@ func (r *reconciler) domainFrom(ksvc *servingv1alpha1.Service, source *sourcesv1
 	source.Status.MarkNoService("ServiceDomainNotFound", "%s", err)
 	return "", err
 }
-
 
 func (r *reconciler) reconcileService(ctx context.Context, source *sourcesv1alpha1.SheetsSource) (*servingv1alpha1.Service, error) {
 	current, err := r.getService(ctx, source)
