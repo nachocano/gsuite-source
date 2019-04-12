@@ -30,15 +30,17 @@ import (
 const (
 	// Environment variable containing the HTTP port
 	envPort = "PORT"
+	// Environment variable containing the sink
+	envSink = "SINK"
 )
 
 func main() {
-	sink := flag.String("sink", "", "uri to send events to")
 	flag.Parse()
 
 	ctx := context.Background()
 
-	if sink == nil || *sink == "" {
+	sink := os.Getenv(envSink)
+	if sink == "" {
 		log.Fatalf("No sink given")
 	}
 
@@ -47,7 +49,7 @@ func main() {
 		port = "8080"
 	}
 
-	ra, err := calendar.New(*sink)
+	ra, err := calendar.New(sink)
 	if err != nil {
 		log.Fatalf("Failed to create calendar adapter: %s", err.Error())
 	}
