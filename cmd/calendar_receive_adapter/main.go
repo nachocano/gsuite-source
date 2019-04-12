@@ -22,7 +22,6 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
 	"log"
-	"net/http"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 )
@@ -49,23 +48,13 @@ func main() {
 		port = "8080"
 	}
 
-	ra, err := calendar.New(sink)
-	if err != nil {
-		log.Fatalf("Failed to create calendar adapter: %s", err.Error())
+	adapter := &calendar.Adapter{
+		Sink: sink,
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Print("Received event")
-		ra.HandleEvent("", r.Header)
-	})
-
-	log.Print("Listening...")
-
-	http.ListenAndServe(port, nil)
-
 	stopCh := signals.SetupSignalHandler()
-	if err := ra.Start(ctx, stopCh); err != nil {
-		log.Fatal("failed to Start adapter: ", zap.Error(err))
+	if err := adapter.Start(ctx, stopCh); err != nil {
+		log.Fatal("failed to start calendar adapter: ", zap.Error(err))
 	}
 
 }

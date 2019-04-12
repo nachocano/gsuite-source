@@ -25,33 +25,42 @@ import (
 	"github.com/knative/eventing-sources/pkg/kncloudevents"
 	"github.com/knative/pkg/logging"
 	sourcesv1alpha1 "github.com/nachocano/gsuite-source/pkg/apis/sources/v1alpha1"
-	"go.uber.org/zap"
+	gscalendar "google.golang.org/api/calendar/v3"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	"log"
 	"net/http"
 	"sync"
 )
 
 type Adapter struct {
-	Sink   string
-	client client.Client
+	Sink string
 
+	ceClient       client.Client
 	initClientOnce sync.Once
-}
 
-func New(sinkURI string) (*Adapter, error) {
-	a := new(Adapter)
-	var err error
-	a.client, err = kncloudevents.NewDefaultClient(sinkURI)
-	if err != nil {
-		return nil, err
-	}
-	return a, nil
+	service *gscalendar.Service
+	token   string
 }
 
 func (a *Adapter) Start(ctx context.Context, stopCh <-chan struct{}) error {
 	logger := logging.FromContext(ctx)
 
-	logger.Info("Starting with config: ", zap.Any("adapter", a))
+	var err error
+	a.ceClient, err = kncloudevents.NewDefaultClient(a.Sink)
+	if err != nil {
+		return err
+	}
+
+	a.service, err = gscalendar.NewService(ctx)
+	if err != nil {
+		return err
+	}
+	a.token = string(uuid.NewUUID())
+
+	a.service.CalendarList.Watch(&gscalendar.Channel{
+		Payload: true,
+		Token:   a.token,
+	})
 
 	for {
 		select {
@@ -75,9 +84,9 @@ func (a *Adapter) HandleEvent(payload interface{}, header http.Header) {
 func (a *Adapter) handleEvent(payload interface{}, hdr http.Header) error {
 	var err error
 	a.initClientOnce.Do(func() {
-		a.client, err = kncloudevents.NewDefaultClient(a.Sink)
+		a.ceClient, err = kncloudevents.NewDefaultClient(a.Sink)
 	})
-	if a.client == nil {
+	if a.ceClient == nil {
 		return fmt.Errorf("failed to create cloudevent client: %s", err)
 	}
 
@@ -95,7 +104,7 @@ func (a *Adapter) handleEvent(payload interface{}, hdr http.Header) error {
 		}.AsV02(),
 		Data: payload,
 	}
-	_, err = a.client.Send(context.TODO(), event)
+	_, err = a.ceClient.Send(context.TODO(), event)
 	return err
 }
 
