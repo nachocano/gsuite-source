@@ -26,7 +26,7 @@ import (
 
 var _ runtime.Object = (*CalendarSource)(nil)
 
-var _ = duck.VerifyType(&SheetsSource{}, &duckv1alpha1.Conditions{})
+var _ = duck.VerifyType(&CalendarSource{}, &duckv1alpha1.Conditions{})
 
 type CalendarSourceSpec struct {
 	// +optional
@@ -91,44 +91,44 @@ func (s *CalendarSourceStatus) InitializeConditions() {
 
 // MarkService sets the condition that the source has a service configured.
 func (s *CalendarSourceStatus) MarkService() {
-	calendarSourceCondSet.Manage(s).MarkTrue(SheetsSourceConditionServiceProvided)
+	calendarSourceCondSet.Manage(s).MarkTrue(CalendarSourceConditionServiceProvided)
 }
 
 // MarkNoService sets the condition that the source does not have a valid service.
 func (s *CalendarSourceStatus) MarkNoService(reason, messageFormat string, messageA ...interface{}) {
-	calendarSourceCondSet.Manage(s).MarkFalse(SheetsSourceConditionServiceProvided, reason, messageFormat, messageA...)
+	calendarSourceCondSet.Manage(s).MarkFalse(CalendarSourceConditionServiceProvided, reason, messageFormat, messageA...)
 }
 
 // MarkSecrets sets the condition that the source has a valid secret.
 func (s *CalendarSourceStatus) MarkSecrets() {
-	calendarSourceCondSet.Manage(s).MarkTrue(SheetsSourceConditionSecretsProvided)
+	calendarSourceCondSet.Manage(s).MarkTrue(CalendarSourceConditionSecretsProvided)
 }
 
 // MarkNoSecrets sets the condition that the source does not have a valid secret.
 func (s *CalendarSourceStatus) MarkNoSecrets(reason, messageFormat string, messageA ...interface{}) {
-	calendarSourceCondSet.Manage(s).MarkFalse(SheetsSourceConditionSecretsProvided, reason, messageFormat, messageA...)
+	calendarSourceCondSet.Manage(s).MarkFalse(CalendarSourceConditionSecretsProvided, reason, messageFormat, messageA...)
 }
 
 // MarkSink sets the condition that the source has a sink configured.
 func (s *CalendarSourceStatus) MarkSink(uri string) {
 	s.SinkURI = uri
 	if len(uri) > 0 {
-		calendarSourceCondSet.Manage(s).MarkTrue(SheetsSourceConditionSinkProvided)
+		calendarSourceCondSet.Manage(s).MarkTrue(CalendarSourceConditionSinkProvided)
 	} else {
-		calendarSourceCondSet.Manage(s).MarkUnknown(SheetsSourceConditionSinkProvided,
+		calendarSourceCondSet.Manage(s).MarkUnknown(CalendarSourceConditionSinkProvided,
 			"SinkEmpty", "Sink has resolved to empty.")
 	}
 }
 
 // MarkNoSink sets the condition that the source does not have a sink configured.
 func (s *CalendarSourceStatus) MarkNoSink(reason, messageFormat string, messageA ...interface{}) {
-	calendarSourceCondSet.Manage(s).MarkFalse(SheetsSourceConditionSinkProvided, reason, messageFormat, messageA...)
+	calendarSourceCondSet.Manage(s).MarkFalse(CalendarSourceConditionSinkProvided, reason, messageFormat, messageA...)
 }
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// CalendarSource is the Schema for the sheetssources API.
+// CalendarSource is the Schema for the calendarsources API.
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
 // +kubebuilder:categories=all,knative,eventing,sources

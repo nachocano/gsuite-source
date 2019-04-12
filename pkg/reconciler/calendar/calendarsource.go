@@ -63,7 +63,7 @@ func Add(mgr manager.Manager) error {
 	log.Println("Adding the Calendar Source Controller")
 	p := &sdk.Provider{
 		AgentName: controllerAgentName,
-		Parent:    &sourcesv1alpha1.SheetsSource{},
+		Parent:    &sourcesv1alpha1.CalendarSource{},
 		Owns:      []runtime.Object{&servingv1alpha1.Service{}},
 		Reconciler: &reconciler{
 			recorder:            mgr.GetRecorder(controllerAgentName),
