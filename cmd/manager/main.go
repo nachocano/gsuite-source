@@ -20,7 +20,7 @@ import (
 	"log"
 
 	"github.com/nachocano/gsuite-source/pkg/apis"
-	controller "github.com/nachocano/gsuite-source/pkg/controller"
+	"github.com/nachocano/gsuite-source/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"

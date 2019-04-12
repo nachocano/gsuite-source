@@ -75,7 +75,7 @@ func Add(mgr manager.Manager) error {
 	return p.Add(mgr)
 }
 
-// reconciler reconciles a SheetsSource object.
+// reconciler reconciles a CalendarSource object.
 type reconciler struct {
 	client              client.Client
 	scheme              *runtime.Scheme

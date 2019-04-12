@@ -15,7 +15,7 @@
 apiVersion: sources.nachocano.org/v1alpha1
 kind: CalendarSource
 metadata:
-  name: sheets-source-sample
+  name: calendar-source-sample
 spec:
   eventTypes:
     - repo:push

@@ -81,7 +81,7 @@ func (a *Adapter) handleEvent(payload interface{}, hdr http.Header) error {
 		return fmt.Errorf("failed to create cloudevent client: %s", err)
 	}
 
-	cloudEventType := fmt.Sprintf("%s.%s", sourcesv1alpha1.SheetsSourceEventPrefix, "type")
+	cloudEventType := fmt.Sprintf("%s.%s", sourcesv1alpha1.CalendarSourceEventPrefix, "type")
 	source, err := sourceFromCalendarEvent("", payload)
 	if err != nil {
 		return err
