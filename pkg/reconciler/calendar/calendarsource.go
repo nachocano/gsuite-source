@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/knative/eventing-sources/pkg/controller/sdk"
 	"github.com/knative/eventing-sources/pkg/controller/sinks"
@@ -115,7 +114,7 @@ func (r *reconciler) Reconcile(ctx context.Context, object runtime.Object) error
 func (r *reconciler) reconcile(ctx context.Context, source *sourcesv1alpha1.CalendarSource) error {
 	source.Status.InitializeConditions()
 
-	_, _, err := r.secretsFrom(ctx, source)
+	_, err := r.secretFrom(ctx, source)
 	if err != nil {
 		return err
 	}
@@ -189,57 +188,18 @@ func (r *reconciler) sinkURIFrom(ctx context.Context, source *sourcesv1alpha1.Ca
 	return uri, err
 }
 
-func (r *reconciler) secretsFrom(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (string, string, error) {
-
-	accessToken, err := r.secretFrom(ctx, source.Namespace, source.Spec.AccessToken.SecretKeyRef)
-	if err != nil {
-		source.Status.MarkNoSecrets("AccessTokenNotFound", "%s", err)
-		return "", "", err
-	}
-	secretToken, err := r.secretFrom(ctx, source.Namespace, source.Spec.SecretToken.SecretKeyRef)
-	if err != nil {
-		source.Status.MarkNoSecrets("SecretTokenNotFound", "%s", err)
-		return "", "", err
-	}
-
-	return accessToken, secretToken, err
-}
-
-func (r *reconciler) secretFrom(ctx context.Context, namespace string, secretKeySelector *corev1.SecretKeySelector) (string, error) {
-	if secretKeySelector == nil {
-		return "", fmt.Errorf("nil secret key selector")
-	}
-
+func (r *reconciler) secretFrom(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (string, error) {
 	secret := &corev1.Secret{}
-	err := r.client.Get(ctx, client.ObjectKey{Namespace: namespace, Name: secretKeySelector.Name}, secret)
+	err := r.client.Get(ctx, client.ObjectKey{Namespace: source.Name, Name: source.Spec.GcpCredsSecret.Name}, secret)
 	if err != nil {
+		source.Status.MarkNoSecrets("GcpCredsSecretNotFound", "%s", err)
 		return "", err
 	}
-	secretVal, ok := secret.Data[secretKeySelector.Key]
+	secretVal, ok := secret.Data[source.Spec.GcpCredsSecret.Key]
 	if !ok {
-		return "", fmt.Errorf("key %q not found in secret %q", secretKeySelector.Key, secretKeySelector.Name)
+		return "", fmt.Errorf("key %q not found in secret %q", source.Spec.GcpCredsSecret.Key, source.Spec.GcpCredsSecret.Name)
 	}
 	return string(secretVal), nil
-}
-
-func (r *reconciler) ownerRepoFrom(source *sourcesv1alpha1.CalendarSource) (string, string, error) {
-	ownerAndRepository := source.Spec.OwnerAndRepository
-	components := strings.Split(ownerAndRepository, "/")
-	if len(components) > 2 {
-		err := fmt.Errorf("ownerAndRepository is malformatted, expected 'owner/repository' but found %q", ownerAndRepository)
-		return "", "", err
-	}
-	owner := components[0]
-	if len(owner) == 0 && len(components) > 1 {
-		err := fmt.Errorf("owner is empty, expected 'owner/repository' but found %q", ownerAndRepository)
-		return "", "", err
-	}
-	repo := ""
-	if len(components) > 1 {
-		repo = components[1]
-	}
-
-	return owner, repo, nil
 }
 
 func (r *reconciler) getService(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (*servingv1alpha1.Service, error) {

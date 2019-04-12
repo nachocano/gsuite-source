@@ -25,19 +25,18 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	credsVolume    = "gcp-key"
+	credsMountPath = "/var/secrets/google"
+)
+
 // MakeService generates, but does not create, a Service for the given SheetsSource.
 func MakeService(source *sourcesv1alpha1.CalendarSource, receiveAdapterImage string) *servingv1alpha1.Service {
 	labels := map[string]string{
 		"receive-adapter": "calendar",
 	}
 	sinkURI := source.Status.SinkURI
-	env := []corev1.EnvVar{
-		{
-			Name:  "SINK",
-			Value: sinkURI,
-		},
-	}
-	containerArgs := []string{fmt.Sprintf("--sink=%s", sinkURI)}
+
 	return &servingv1alpha1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: fmt.Sprintf("%s-", source.Name),
@@ -52,8 +51,29 @@ func MakeService(source *sourcesv1alpha1.CalendarSource, receiveAdapterImage str
 							ServiceAccountName: source.Spec.ServiceAccountName,
 							Container: corev1.Container{
 								Image: receiveAdapterImage,
-								Env:   env,
-								Args:  containerArgs,
+								Env: []corev1.EnvVar{
+									{
+										Name:  "SINK",
+										Value: sinkURI,
+									},
+								},
+								Args: []string{fmt.Sprintf("--sink=%s", sinkURI)},
+								VolumeMounts: []corev1.VolumeMount{
+									{
+										Name:      credsVolume,
+										MountPath: credsMountPath,
+									},
+								},
+							},
+							Volumes: []corev1.Volume{
+								{
+									Name: credsVolume,
+									VolumeSource: corev1.VolumeSource{
+										Secret: &corev1.SecretVolumeSource{
+											SecretName: source.Spec.GcpCredsSecret.Name,
+										},
+									},
+								},
 							},
 						},
 					},

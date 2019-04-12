@@ -32,15 +32,7 @@ type CalendarSourceSpec struct {
 	// +optional
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 
-	// +kubebuilder:validation:MinLength=1
-	OwnerAndRepository string `json:"ownerAndRepository"`
-
-	// +kubebuilder:validation:MinItems=1
-	EventTypes []string `json:"eventTypes"`
-
-	AccessToken CalendarSecretFromSource `json:"accessToken"`
-
-	SecretToken CalendarSecretFromSource `json:"secretToken"`
+	GcpCredsSecret corev1.SecretKeySelector `json:"gcpCredsSecret"`
 
 	// +optional
 	Sink *corev1.ObjectReference `json:"sink,omitempty"`

@@ -17,17 +17,9 @@ kind: CalendarSource
 metadata:
   name: calendar-source-sample
 spec:
-  eventTypes:
-    - repo:push
-  ownerAndRepository: <YOUR USER>/<YOUR REPO>
-  accessToken:
-    secretKeyRef:
-      name: calendar-secret
-      key: accessToken
-  secretToken:
-    secretKeyRef:
-      name: calendar-secret
-      key: secretToken
+  gcpCredsSecret:
+    name: gcp-key
+    key: key.json
   sink:
     apiVersion: serving.knative.dev/v1alpha1
     kind: Service

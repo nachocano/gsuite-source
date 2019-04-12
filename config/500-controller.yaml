@@ -33,10 +33,15 @@ spec:
         - image: github.com/nachocano/gsuite-source/cmd/manager
           name: manager
           env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json
             - name: SHEETS_RA_IMAGE
               value: github.com/nachocano/gsuite-source/cmd/sheets_receive_adapter
             - name: CALENDAR_RA_IMAGE
               value: github.com/nachocano/gsuite-source/cmd/calendar_receive_adapter
+          volumeMounts:
+            - name: gcp-key
+              mountPath: /var/secrets/google
           resources:
             limits:
               cpu: 100m
@@ -44,5 +49,9 @@ spec:
             requests:
               cpu: 20m
               memory: 20Mi
+      volumes:
+        - name: gcp-key
+          secret:
+            secretName: gsuite-source-key
       serviceAccount: gsuite-controller-manager
       terminationGracePeriodSeconds: 10

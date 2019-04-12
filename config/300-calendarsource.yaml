@@ -42,36 +42,14 @@ spec:
           type: object
         spec:
           properties:
-            accessToken:
-              properties:
-                secretKeyRef:
-                  type: object
-              type: object
-            eventTypes:
-              items:
-                enum:
-                - repo:push
-                - repo:fork
-                type: string
-              minItems: 1
-              type: array
-            ownerAndRepository:
-              minLength: 1
-              type: string
-            secretToken:
-              properties:
-                secretKeyRef:
-                  type: object
+            gcpCredsSecret:
               type: object
             serviceAccountName:
               type: string
             sink:
               type: object
           required:
-          - ownerAndRepository
-          - eventTypes
-          - accessToken
-          - secretToken
+          - gcpCredsSecret
           type: object
         status:
           properties:
