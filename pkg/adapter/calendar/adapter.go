@@ -64,13 +64,21 @@ func New(ctx context.Context, sink, port string) (*Adapter, error) {
 }
 
 func (a *Adapter) Watch() error {
-	a.service.CalendarList.Watch(&gscalendar.Channel{
+	channel := &gscalendar.Channel{
 		Id:      a.id,
 		Token:   a.token,
 		Address: "",
 		Payload: true,
 		Kind:    "api#channel",
-	})
+	}
+	resp, err := a.service.CalendarList.Watch(channel).Do()
+	if err != nil {
+		return err
+	}
+	log.Printf("Id %s", resp.Id)
+	log.Printf("Token %s", resp.Token)
+	log.Printf("Kind %s", resp.Kind)
+	log.Printf("Type %s", resp.Type)
 	return nil
 }
 

@@ -36,8 +36,9 @@ const (
 
 func main() {
 	flag.Parse()
-
 	ctx := context.Background()
+
+	log.Print("Starting Calendar Adapter...")
 
 	sink := os.Getenv(envSink)
 	if sink == "" {
@@ -54,7 +55,7 @@ func main() {
 		log.Fatalf("Failed to create Calendar Adapter: %v", zap.Error(err))
 	}
 
-	err := ra.Watch()
+	err = ra.Watch()
 	if err != nil {
 		log.Fatalf("Failed to watch Calendar Events: %v", zap.Error(err))
 	}
@@ -67,4 +68,6 @@ func main() {
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil); err != nil {
 		log.Fatalf("Failed to start Calendar Adapter: %v", zap.Error(err))
 	}
+
+	log.Print("Started Calendar Adapter")
 }
