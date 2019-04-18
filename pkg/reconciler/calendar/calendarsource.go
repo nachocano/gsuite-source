@@ -155,6 +155,7 @@ func (r *reconciler) reconcile(ctx context.Context, source *sourcesv1alpha1.Cale
 		return err
 	}
 	source.Status.MarkWebHook(webhookUUID)
+	logger.Infof("WebHook UUID %s", webhookUUID)
 	return nil
 }
 

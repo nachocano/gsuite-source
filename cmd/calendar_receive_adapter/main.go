@@ -45,7 +45,7 @@ func main() {
 
 	port := os.Getenv(envPort)
 	if port == "" {
-		port = "8080"
+		port = "8443"
 	}
 
 	ra, err := calendar.New(sink)
@@ -58,7 +58,8 @@ func main() {
 		ra.HandleEvent(r.Body, r.Header)
 	})
 
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil); err != nil {
+	addr := fmt.Sprintf(":%s", port)
+	if err := http.ListenAndServeTLS(addr, "", "", nil); err != nil {
 		log.Fatalf("Failed to start Calendar Adapter: %v", zap.Error(err))
 	}
 
