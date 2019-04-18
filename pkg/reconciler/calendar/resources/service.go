@@ -30,7 +30,7 @@ const (
 	credsMountPath = "/var/secrets/google"
 )
 
-// MakeService generates, but does not create, a Service for the given SheetsSource.
+// MakeService generates, but does not create, a Service for the given CalendarSource.
 func MakeService(source *sourcesv1alpha1.CalendarSource, receiveAdapterImage string) *servingv1alpha1.Service {
 	credsFile := fmt.Sprintf("%s/%s", credsMountPath, source.Spec.GcpCredsSecret.Key)
 	labels := map[string]string{
