@@ -17,13 +17,14 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
+	"fmt"
 	"github.com/nachocano/gsuite-source/pkg/adapter/calendar"
 	"go.uber.org/zap"
-	"golang.org/x/net/context"
 	"log"
+	"net/http"
 	"os"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 )
 
 const (
@@ -40,7 +41,7 @@ func main() {
 
 	sink := os.Getenv(envSink)
 	if sink == "" {
-		log.Fatalf("No sink given")
+		log.Fatal("No sink given")
 	}
 
 	port := os.Getenv(envPort)
@@ -48,13 +49,22 @@ func main() {
 		port = "8080"
 	}
 
-	adapter := &calendar.Adapter{
-		Sink: sink,
+	ra, err := calendar.New(ctx, sink, port)
+	if err != nil {
+		log.Fatalf("Failed to create Calendar Adapter: %v", zap.Error(err))
 	}
 
-	stopCh := signals.SetupSignalHandler()
-	if err := adapter.Start(ctx, stopCh); err != nil {
-		log.Fatal("failed to start calendar adapter: ", zap.Error(err))
+	err := ra.Watch()
+	if err != nil {
+		log.Fatalf("Failed to watch Calendar Events: %v", zap.Error(err))
 	}
 
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Print("Event received")
+		ra.HandleEvent(r.Body, r.Header)
+	})
+
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil); err != nil {
+		log.Fatalf("Failed to start Calendar Adapter: %v", zap.Error(err))
+	}
 }

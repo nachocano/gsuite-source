@@ -40,6 +40,7 @@ required = [
 
 [[constraint]]
   # HEAD as of 2019-04-17
+  # Needed for the logger fix on the sdk.
   name = "github.com/knative/eventing-sources"
   # version = "=0.5.0"
   revision = "94702a0cc062a49f40d6ed949ff05a018167bda3"
@@ -67,3 +68,6 @@ required = [
   name = "k8s.io/client-go"
   version = "kubernetes-1.12.6"
 
+[[override]]
+  name = "github.com/cloudevents/sdk-go"
+  version = "0.6.0"
