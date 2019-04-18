@@ -66,6 +66,7 @@ func MakeService(source *sourcesv1alpha1.CalendarSource, receiveAdapterImage str
 									{
 										Name:      credsVolume,
 										MountPath: credsMountPath,
+										ReadOnly:  true,
 									},
 								},
 							},
