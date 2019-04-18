@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	"log"
 	"os"
 
@@ -30,6 +31,7 @@ import (
 	sourcesv1alpha1 "github.com/nachocano/gsuite-source/pkg/apis/sources/v1alpha1"
 	"github.com/nachocano/gsuite-source/pkg/reconciler/calendar/resources"
 	"go.uber.org/zap"
+	gscalendar "google.golang.org/api/calendar/v3"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -49,6 +51,12 @@ const (
 	raImageEnvVar       = "CALENDAR_RA_IMAGE"
 	finalizerName       = controllerAgentName
 )
+
+type webhookArgs struct {
+	id     string
+	token  string
+	domain string
+}
 
 // Add creates a new CalendarSource Controller and adds it to the
 // Manager with default RBAC. The Manager will set fields on the
@@ -112,6 +120,8 @@ func (r *reconciler) Reconcile(ctx context.Context, object runtime.Object) error
 }
 
 func (r *reconciler) reconcile(ctx context.Context, source *sourcesv1alpha1.CalendarSource) error {
+	logger := logging.FromContext(ctx)
+
 	source.Status.InitializeConditions()
 
 	_, err := r.secretFrom(ctx, source)
@@ -125,23 +135,31 @@ func (r *reconciler) reconcile(ctx context.Context, source *sourcesv1alpha1.Cale
 		return err
 	}
 	source.Status.MarkSink(uri)
+	logger.Infof("Sink URI %s", uri)
 
 	ksvc, err := r.reconcileService(ctx, source)
 	if err != nil {
 		return err
 	}
 
-	_, err = r.domainFrom(ksvc, source)
+	domain, err := r.domainFrom(ksvc, source)
 	if err != nil {
 		// Returning nil on purpose as we will wait until the next reconciliation process is triggered.
 		return nil
 	}
+	logger.Infof("Service domain %s", domain)
 	source.Status.MarkService()
 
+	webhookUUID, err := r.reconcileWebhook(ctx, source, domain)
+	if err != nil {
+		return err
+	}
+	source.Status.MarkWebHook(webhookUUID)
 	return nil
 }
 
 func (r *reconciler) finalize(ctx context.Context, source *sourcesv1alpha1.CalendarSource) error {
+	// TODO remove webhook
 	r.removeFinalizer(source)
 	return nil
 }
@@ -177,6 +195,48 @@ func (r *reconciler) reconcileService(ctx context.Context, source *sourcesv1alph
 	}
 
 	return current, nil
+}
+
+func (r *reconciler) reconcileWebhook(ctx context.Context, source *sourcesv1alpha1.CalendarSource, domain string) (string, error) {
+	// If webhook doesn't exist, then create it.
+	if source.Status.WebhookUUIDKey == "" {
+		r.addFinalizer(source)
+
+		webhookArgs := &webhookArgs{
+			id:     string(uuid.NewUUID()),
+			token:  string(uuid.NewUUID()),
+			domain: domain,
+		}
+
+		hookID, err := r.createWebhook(ctx, webhookArgs)
+		if err != nil {
+			source.Status.MarkNoWebHook("WebHookCreateFailed", "%s", err)
+			return "", err
+		}
+		source.Status.WebhookUUIDKey = hookID
+	}
+	return source.Status.WebhookUUIDKey, nil
+}
+
+func (r *reconciler) createWebhook(ctx context.Context, args *webhookArgs) (string, error) {
+	svc, err := gscalendar.NewService(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	channel := &gscalendar.Channel{
+		Id:      args.id,
+		Token:   args.token,
+		Address: fmt.Sprintf("https://%s", args.domain),
+		Payload: true,
+		Kind:    "api#channel",
+		Type:    "web_hook",
+	}
+	resp, err := svc.CalendarList.Watch(channel).Do()
+	if err != nil {
+		return "", err
+	}
+	return resp.Id, nil
 }
 
 func (r *reconciler) sinkURIFrom(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (string, error) {

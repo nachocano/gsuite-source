@@ -52,16 +52,20 @@ const (
 	CalendarSourceConditionSecretsProvided duckv1alpha1.ConditionType = "SecretsProvided"
 	CalendarSourceConditionSinkProvided    duckv1alpha1.ConditionType = "SinkProvided"
 	CalendarSourceConditionServiceProvided duckv1alpha1.ConditionType = "ServiceProvided"
+	CalendarSourceConditionWebHookProvided duckv1alpha1.ConditionType = "WebHookProvided"
 )
 
 var calendarSourceCondSet = duckv1alpha1.NewLivingConditionSet(
 	CalendarSourceConditionSecretsProvided,
 	CalendarSourceConditionSinkProvided,
 	CalendarSourceConditionServiceProvided,
+	CalendarSourceConditionWebHookProvided,
 )
 
 type CalendarSourceStatus struct {
 	duckv1alpha1.Status `json:",inline"`
+
+	WebhookUUIDKey string `json:"webhookUUIDKey,omitempty"`
 
 	SinkURI string `json:"sinkUri,omitempty"`
 }
@@ -89,6 +93,24 @@ func (s *CalendarSourceStatus) MarkService() {
 // MarkNoService sets the condition that the source does not have a valid service.
 func (s *CalendarSourceStatus) MarkNoService(reason, messageFormat string, messageA ...interface{}) {
 	calendarSourceCondSet.Manage(s).MarkFalse(CalendarSourceConditionServiceProvided, reason, messageFormat, messageA...)
+}
+
+// MarkWebHook sets the condition that the source has a webhook configured.
+func (s *CalendarSourceStatus) MarkWebHook(hookID string) {
+	s.WebhookUUIDKey = hookID
+	if len(hookID) > 0 {
+		calendarSourceCondSet.Manage(s).MarkTrue(CalendarSourceConditionWebHookProvided)
+	} else {
+		calendarSourceCondSet.Manage(s).MarkFalse(CalendarSourceConditionWebHookProvided,
+			"WebHookUUIDEmpty", "WebHookUUID is empty.")
+	}
+
+}
+
+// MarkNoWebHook sets the condition that the source does not have a valid webhook.
+func (s *CalendarSourceStatus) MarkNoWebHook(reason, messageFormat string, messageA ...interface{}) {
+	s.WebhookUUIDKey = ""
+	calendarSourceCondSet.Manage(s).MarkFalse(CalendarSourceConditionWebHookProvided, reason, messageFormat, messageA...)
 }
 
 // MarkSecrets sets the condition that the source has a valid secret.

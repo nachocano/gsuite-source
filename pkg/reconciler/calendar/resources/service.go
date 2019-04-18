@@ -25,14 +25,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const (
-	credsVolume    = "gcp-key"
-	credsMountPath = "/var/secrets/google"
-)
-
 // MakeService generates, but does not create, a Service for the given CalendarSource.
 func MakeService(source *sourcesv1alpha1.CalendarSource, receiveAdapterImage string) *servingv1alpha1.Service {
-	credsFile := fmt.Sprintf("%s/%s", credsMountPath, source.Spec.GcpCredsSecret.Key)
 	labels := map[string]string{
 		"receive-adapter": "calendar",
 	}
@@ -56,27 +50,6 @@ func MakeService(source *sourcesv1alpha1.CalendarSource, receiveAdapterImage str
 									{
 										Name:  "SINK",
 										Value: sinkURI,
-									},
-									{
-										Name:  "GOOGLE_APPLICATION_CREDENTIALS",
-										Value: credsFile,
-									},
-								},
-								VolumeMounts: []corev1.VolumeMount{
-									{
-										Name:      credsVolume,
-										MountPath: credsMountPath,
-										ReadOnly:  true,
-									},
-								},
-							},
-							Volumes: []corev1.Volume{
-								{
-									Name: credsVolume,
-									VolumeSource: corev1.VolumeSource{
-										Secret: &corev1.SecretVolumeSource{
-											SecretName: source.Spec.GcpCredsSecret.Name,
-										},
 									},
 								},
 							},

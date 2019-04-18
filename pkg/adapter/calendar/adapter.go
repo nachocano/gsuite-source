@@ -24,8 +24,6 @@ import (
 	"github.com/cloudevents/sdk-go/pkg/cloudevents/types"
 	"github.com/knative/eventing-sources/pkg/kncloudevents"
 	sourcesv1alpha1 "github.com/nachocano/gsuite-source/pkg/apis/sources/v1alpha1"
-	gscalendar "google.golang.org/api/calendar/v3"
-	"k8s.io/apimachinery/pkg/util/uuid"
 	"log"
 	"net/http"
 	"sync"
@@ -33,17 +31,14 @@ import (
 
 type Adapter struct {
 	sink string
-	port string
 
 	ceClient       client.Client
 	initClientOnce sync.Once
 
-	service *gscalendar.Service
-	token   string
-	id      string
+	token string
 }
 
-func New(ctx context.Context, sink, port string) (*Adapter, error) {
+func New(sink string) (*Adapter, error) {
 	a := new(Adapter)
 	var err error
 
@@ -51,35 +46,7 @@ func New(ctx context.Context, sink, port string) (*Adapter, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	a.service, err = gscalendar.NewService(ctx)
-	if err != nil {
-		return nil, err
-	}
-	a.sink = sink
-	a.port = port
-	a.id = string(uuid.NewUUID())
-	a.token = string(uuid.NewUUID())
 	return a, nil
-}
-
-func (a *Adapter) Watch() error {
-	channel := &gscalendar.Channel{
-		Id:      a.id,
-		Token:   a.token,
-		Address: "",
-		Payload: true,
-		Kind:    "api#channel",
-	}
-	resp, err := a.service.CalendarList.Watch(channel).Do()
-	if err != nil {
-		return err
-	}
-	log.Printf("Id %s", resp.Id)
-	log.Printf("Token %s", resp.Token)
-	log.Printf("Kind %s", resp.Kind)
-	log.Printf("Type %s", resp.Type)
-	return nil
 }
 
 func (a *Adapter) HandleEvent(payload interface{}, header http.Header) {

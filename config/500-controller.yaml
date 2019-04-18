@@ -33,6 +33,9 @@ spec:
         - image: github.com/nachocano/gsuite-source/cmd/manager
           name: manager
           env:
+            # If this variable is set, then the authentication is done automatically by the client.
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json
             - name: SHEETS_RA_IMAGE
               value: github.com/nachocano/gsuite-source/cmd/sheets_receive_adapter
             - name: CALENDAR_RA_IMAGE

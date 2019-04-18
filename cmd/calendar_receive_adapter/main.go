@@ -17,7 +17,6 @@ limitations under the License.
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"github.com/nachocano/gsuite-source/pkg/adapter/calendar"
@@ -36,7 +35,6 @@ const (
 
 func main() {
 	flag.Parse()
-	ctx := context.Background()
 
 	log.Print("Starting Calendar Adapter...")
 
@@ -50,14 +48,9 @@ func main() {
 		port = "8080"
 	}
 
-	ra, err := calendar.New(ctx, sink, port)
+	ra, err := calendar.New(sink)
 	if err != nil {
 		log.Fatalf("Failed to create Calendar Adapter: %v", zap.Error(err))
-	}
-
-	err = ra.Watch()
-	if err != nil {
-		log.Fatalf("Failed to watch Calendar Events: %v", zap.Error(err))
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
