@@ -48,16 +48,16 @@ const (
 )
 
 const (
-	CalendarSourceConditionReady                                         = duckv1alpha1.ConditionReady
-	CalendarSourceConditionSecretsProvided    duckv1alpha1.ConditionType = "SecretsProvided"
-	CalendarSourceConditionSinkProvided       duckv1alpha1.ConditionType = "SinkProvided"
-	CalendarSourceConditionDeploymentProvided duckv1alpha1.ConditionType = "DeploymentProvided"
+	CalendarSourceConditionReady                                      = duckv1alpha1.ConditionReady
+	CalendarSourceConditionSecretsProvided duckv1alpha1.ConditionType = "SecretsProvided"
+	CalendarSourceConditionSinkProvided    duckv1alpha1.ConditionType = "SinkProvided"
+	CalendarSourceConditionServiceProvided duckv1alpha1.ConditionType = "ServiceProvided"
 )
 
 var calendarSourceCondSet = duckv1alpha1.NewLivingConditionSet(
 	CalendarSourceConditionSecretsProvided,
 	CalendarSourceConditionSinkProvided,
-	CalendarSourceConditionDeploymentProvided,
+	CalendarSourceConditionServiceProvided,
 )
 
 type CalendarSourceStatus struct {
@@ -81,14 +81,14 @@ func (s *CalendarSourceStatus) InitializeConditions() {
 	calendarSourceCondSet.Manage(s).InitializeConditions()
 }
 
-// MarkDeployment sets the condition that the source has a deployment configured.
-func (s *CalendarSourceStatus) MarkDeployment() {
-	calendarSourceCondSet.Manage(s).MarkTrue(CalendarSourceConditionDeploymentProvided)
+// MarkService sets the condition that the source has a service configured.
+func (s *CalendarSourceStatus) MarkService() {
+	calendarSourceCondSet.Manage(s).MarkTrue(CalendarSourceConditionServiceProvided)
 }
 
-// MarkNoDeployment sets the condition that the source does not have a valid deployment.
-func (s *CalendarSourceStatus) MarkNoDeployment(reason, messageFormat string, messageA ...interface{}) {
-	calendarSourceCondSet.Manage(s).MarkFalse(CalendarSourceConditionDeploymentProvided, reason, messageFormat, messageA...)
+// MarkNoService sets the condition that the source does not have a valid service.
+func (s *CalendarSourceStatus) MarkNoService(reason, messageFormat string, messageA ...interface{}) {
+	calendarSourceCondSet.Manage(s).MarkFalse(CalendarSourceConditionServiceProvided, reason, messageFormat, messageA...)
 }
 
 // MarkSecrets sets the condition that the source has a valid secret.

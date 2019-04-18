@@ -17,6 +17,9 @@ limitations under the License.
 package main
 
 import (
+	"github.com/knative/pkg/logging/logkey"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"log"
 
 	"github.com/nachocano/gsuite-source/pkg/apis"
@@ -27,6 +30,14 @@ import (
 )
 
 func main() {
+	logCfg := zap.NewProductionConfig()
+	logCfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	logger, err := logCfg.Build()
+	logger = logger.With(zap.String(logkey.ControllerType, "gsuite-controller-manager"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Get a config to talk to the apiserver.
 	cfg, err := config.GetConfig()
 	if err != nil {
@@ -47,7 +58,7 @@ func main() {
 	}
 
 	// Setup GSuite Controller.
-	if err := controller.AddToManager(mgr); err != nil {
+	if err := controller.AddToManager(mgr, logger.Sugar()); err != nil {
 		log.Fatal(err)
 	}
 

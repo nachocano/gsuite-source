@@ -19,14 +19,14 @@ package calendar
 import (
 	"context"
 	"fmt"
-	"k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/labels"
 	"log"
 	"os"
 
 	"github.com/knative/eventing-sources/pkg/controller/sdk"
 	"github.com/knative/eventing-sources/pkg/controller/sinks"
 	"github.com/knative/pkg/logging"
+	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	sourcesv1alpha1 "github.com/nachocano/gsuite-source/pkg/apis/sources/v1alpha1"
 	"github.com/nachocano/gsuite-source/pkg/reconciler/calendar/resources"
 	"go.uber.org/zap"
@@ -34,7 +34,6 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/record"
@@ -54,7 +53,7 @@ const (
 // Add creates a new CalendarSource Controller and adds it to the
 // Manager with default RBAC. The Manager will set fields on the
 // Controller and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
+func Add(mgr manager.Manager, logger *zap.SugaredLogger) error {
 	receiveAdapterImage, defined := os.LookupEnv(raImageEnvVar)
 	if !defined {
 		return fmt.Errorf("required environment variable %q not defined", raImageEnvVar)
@@ -64,7 +63,7 @@ func Add(mgr manager.Manager) error {
 	p := &sdk.Provider{
 		AgentName: controllerAgentName,
 		Parent:    &sourcesv1alpha1.CalendarSource{},
-		Owns:      []runtime.Object{&v1.Deployment{}},
+		Owns:      []runtime.Object{&servingv1alpha1.Service{}},
 		Reconciler: &reconciler{
 			recorder:            mgr.GetRecorder(controllerAgentName),
 			scheme:              mgr.GetScheme(),
@@ -72,7 +71,7 @@ func Add(mgr manager.Manager) error {
 		},
 	}
 
-	return p.Add(mgr)
+	return p.Add(mgr, logger)
 }
 
 // reconciler reconciles a CalendarSource object.
@@ -127,11 +126,17 @@ func (r *reconciler) reconcile(ctx context.Context, source *sourcesv1alpha1.Cale
 	}
 	source.Status.MarkSink(uri)
 
-	_, err = r.reconcileDeployment(ctx, source)
+	ksvc, err := r.reconcileService(ctx, source)
 	if err != nil {
 		return err
 	}
-	source.Status.MarkDeployment()
+
+	_, err = r.domainFrom(ksvc, source)
+	if err != nil {
+		// Returning nil on purpose as we will wait until the next reconciliation process is triggered.
+		return nil
+	}
+	source.Status.MarkService()
 
 	return nil
 }
@@ -141,21 +146,32 @@ func (r *reconciler) finalize(ctx context.Context, source *sourcesv1alpha1.Calen
 	return nil
 }
 
-func (r *reconciler) reconcileDeployment(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (*v1.Deployment, error) {
-	current, err := r.getDeployment(ctx, source)
+func (r *reconciler) domainFrom(ksvc *servingv1alpha1.Service, source *sourcesv1alpha1.CalendarSource) (string, error) {
+	routeCondition := ksvc.Status.GetCondition(servingv1alpha1.ServiceConditionRoutesReady)
+	receiveAdapterDomain := ksvc.Status.Domain
+	if routeCondition != nil && routeCondition.Status == corev1.ConditionTrue && receiveAdapterDomain != "" {
+		return receiveAdapterDomain, nil
+	}
+	err := fmt.Errorf("domain not found for svc %q", ksvc.Name)
+	source.Status.MarkNoService("ServiceDomainNotFound", "%s", err)
+	return "", err
+}
+
+func (r *reconciler) reconcileService(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (*servingv1alpha1.Service, error) {
+	current, err := r.getService(ctx, source)
 
 	// If the resource doesn't exist, we'll create it.
 	if apierrors.IsNotFound(err) {
-		d, err := r.newDeployment(source)
+		ksvc, err := r.newService(source)
 		if err != nil {
 			return nil, err
 		}
-		err = r.client.Create(ctx, d)
+		err = r.client.Create(ctx, ksvc)
 		if err != nil {
-			source.Status.MarkNoDeployment("DeploymentCreateFailed", "%s", err)
+			source.Status.MarkNoService("ServiceCreateFailed", "%s", err)
 			return nil, err
 		}
-		return d, nil
+		return ksvc, nil
 	} else if err != nil {
 		return nil, err
 	}
@@ -186,54 +202,38 @@ func (r *reconciler) secretFrom(ctx context.Context, source *sourcesv1alpha1.Cal
 	return string(secretVal), nil
 }
 
-func (r *reconciler) getDeployment(ctx context.Context, src *sourcesv1alpha1.CalendarSource) (*v1.Deployment, error) {
-	dl := &v1.DeploymentList{}
+func (r *reconciler) getService(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (*servingv1alpha1.Service, error) {
+	list := &servingv1alpha1.ServiceList{}
 	err := r.client.List(ctx, &client.ListOptions{
-		Namespace:     src.Namespace,
-		LabelSelector: r.getLabelSelector(src),
-		// TODO this is only needed by the fake client. Real K8s does not need it. Remove it once
-		// the fake is fixed.
+		Namespace:     source.Namespace,
+		LabelSelector: labels.Everything(),
+		// TODO this is here because the fake client needs it.
+		// Remove this when it's no longer needed.
 		Raw: &metav1.ListOptions{
 			TypeMeta: metav1.TypeMeta{
-				APIVersion: v1.SchemeGroupVersion.String(),
-				Kind:       "Deployment",
+				APIVersion: servingv1alpha1.SchemeGroupVersion.String(),
+				Kind:       "Service",
 			},
 		},
-	}, dl)
+	},
+		list)
 	if err != nil {
 		return nil, err
 	}
-	for _, dep := range dl.Items {
-		if metav1.IsControlledBy(&dep, src) {
-			return &dep, nil
+	for _, ksvc := range list.Items {
+		if metav1.IsControlledBy(&ksvc, source) {
+			return &ksvc, nil
 		}
 	}
-	return nil, apierrors.NewNotFound(schema.GroupResource{}, "deployments")
+	return nil, apierrors.NewNotFound(servingv1alpha1.Resource("services"), "")
 }
 
-func (r *reconciler) getLabelSelector(src *sourcesv1alpha1.CalendarSource) labels.Selector {
-	return labels.SelectorFromSet(getLabels(src))
-}
-
-func getLabels(src *sourcesv1alpha1.CalendarSource) map[string]string {
-	return map[string]string{
-		"knative-eventing-source":      controllerAgentName,
-		"knative-eventing-source-name": src.Name,
-	}
-}
-
-func (r *reconciler) newDeployment(source *sourcesv1alpha1.CalendarSource) (*v1.Deployment, error) {
-	args := &resources.DeploymentArgs{
-		Image:   r.receiveAdapterImage,
-		Source:  source,
-		Labels:  getLabels(source),
-		SinkURI: source.Status.SinkURI,
-	}
-	depl := resources.MakeDeployment(args)
-	if err := controllerutil.SetControllerReference(source, depl, r.scheme); err != nil {
+func (r *reconciler) newService(source *sourcesv1alpha1.CalendarSource) (*servingv1alpha1.Service, error) {
+	ksvc := resources.MakeService(source, r.receiveAdapterImage)
+	if err := controllerutil.SetControllerReference(source, ksvc, r.scheme); err != nil {
 		return nil, err
 	}
-	return depl, nil
+	return ksvc, nil
 }
 
 func (r *reconciler) addFinalizer(s *sourcesv1alpha1.CalendarSource) {

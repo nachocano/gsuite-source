@@ -239,7 +239,7 @@
   version = "v0.5.0"
 
 [[projects]]
-  digest = "1:b0430dc5fb192934d20e413f41926e1070c637948e8e8cd741ef8c4e277cc120"
+  digest = "1:b0e8e4fc7d44b235b34b59dc3123b6da086ba6a1c2cf34b11674cd321be4b67d"
   name = "github.com/knative/eventing-sources"
   packages = [
     "pkg/controller/sdk",
@@ -247,37 +247,39 @@
     "pkg/kncloudevents",
   ]
   pruneopts = "NUT"
-  revision = "32ce3778fa1bc46ed0b0ade16d5c57f343cafa4d"
-  version = "v0.5.0"
+  revision = "94702a0cc062a49f40d6ed949ff05a018167bda3"
 
 [[projects]]
-  digest = "1:d9123e63c1a0241e114a7b711c150d3d9e193ed96f3714c000d31c0768acf88a"
+  digest = "1:4326161e6e4e66c686dcc55d09aa7365cbe852ed69520d59e7e766c88ab1d106"
   name = "github.com/knative/pkg"
   packages = [
     "apis",
     "apis/duck",
     "apis/duck/v1alpha1",
     "changeset",
+    "configmap",
     "kmeta",
     "kmp",
     "logging",
     "logging/logkey",
   ]
   pruneopts = "NUT"
-  revision = "60fdcbcabd2faeb34328d8b2725dc76c59189453"
+  revision = "2b574edcd712e848556c69cc95a2622145284882"
 
 [[projects]]
-  digest = "1:a8d21ce0ca98bb38c62bbb45be63ca3b1570370c9c8c7cf10b63b15354a42d94"
+  digest = "1:a9e1c051fce18116746655820d0ff3f15159dac0e6db9c4bf324543fe6760b5d"
   name = "github.com/knative/serving"
   packages = [
     "pkg/apis/autoscaling",
+    "pkg/apis/config",
     "pkg/apis/networking",
     "pkg/apis/networking/v1alpha1",
     "pkg/apis/serving",
     "pkg/apis/serving/v1alpha1",
   ]
   pruneopts = "NUT"
-  revision = "9a44df0e64edcb943c7edfe2d3eac2be41aa2316"
+  revision = "de51b2cd890649e2081dcafbc50afa8b07b54704"
+  version = "v0.5.1"
 
 [[projects]]
   branch = "master"
@@ -759,12 +761,56 @@
   version = "kubernetes-1.12.6"
 
 [[projects]]
-  digest = "1:826038512a7f94abc653142d82f3775146e197d2ad2adf8605d9415364507c78"
+  digest = "1:cee4790ae2fe6d1c9fce2104f1ca7f977c52677e537beae478df0aaed39c63a8"
   name = "k8s.io/client-go"
   packages = [
     "discovery",
     "discovery/fake",
     "dynamic",
+    "informers",
+    "informers/admissionregistration",
+    "informers/admissionregistration/v1alpha1",
+    "informers/admissionregistration/v1beta1",
+    "informers/apps",
+    "informers/apps/v1",
+    "informers/apps/v1beta1",
+    "informers/apps/v1beta2",
+    "informers/autoscaling",
+    "informers/autoscaling/v1",
+    "informers/autoscaling/v2beta1",
+    "informers/autoscaling/v2beta2",
+    "informers/batch",
+    "informers/batch/v1",
+    "informers/batch/v1beta1",
+    "informers/batch/v2alpha1",
+    "informers/certificates",
+    "informers/certificates/v1beta1",
+    "informers/coordination",
+    "informers/coordination/v1beta1",
+    "informers/core",
+    "informers/core/v1",
+    "informers/events",
+    "informers/events/v1beta1",
+    "informers/extensions",
+    "informers/extensions/v1beta1",
+    "informers/internalinterfaces",
+    "informers/networking",
+    "informers/networking/v1",
+    "informers/policy",
+    "informers/policy/v1beta1",
+    "informers/rbac",
+    "informers/rbac/v1",
+    "informers/rbac/v1alpha1",
+    "informers/rbac/v1beta1",
+    "informers/scheduling",
+    "informers/scheduling/v1alpha1",
+    "informers/scheduling/v1beta1",
+    "informers/settings",
+    "informers/settings/v1alpha1",
+    "informers/storage",
+    "informers/storage/v1",
+    "informers/storage/v1alpha1",
+    "informers/storage/v1beta1",
     "kubernetes",
     "kubernetes/scheme",
     "kubernetes/typed/admissionregistration/v1alpha1",
@@ -798,6 +844,33 @@
     "kubernetes/typed/storage/v1",
     "kubernetes/typed/storage/v1alpha1",
     "kubernetes/typed/storage/v1beta1",
+    "listers/admissionregistration/v1alpha1",
+    "listers/admissionregistration/v1beta1",
+    "listers/apps/v1",
+    "listers/apps/v1beta1",
+    "listers/apps/v1beta2",
+    "listers/autoscaling/v1",
+    "listers/autoscaling/v2beta1",
+    "listers/autoscaling/v2beta2",
+    "listers/batch/v1",
+    "listers/batch/v1beta1",
+    "listers/batch/v2alpha1",
+    "listers/certificates/v1beta1",
+    "listers/coordination/v1beta1",
+    "listers/core/v1",
+    "listers/events/v1beta1",
+    "listers/extensions/v1beta1",
+    "listers/networking/v1",
+    "listers/policy/v1beta1",
+    "listers/rbac/v1",
+    "listers/rbac/v1alpha1",
+    "listers/rbac/v1beta1",
+    "listers/scheduling/v1alpha1",
+    "listers/scheduling/v1beta1",
+    "listers/settings/v1alpha1",
+    "listers/storage/v1",
+    "listers/storage/v1alpha1",
+    "listers/storage/v1beta1",
     "pkg/apis/clientauthentication",
     "pkg/apis/clientauthentication/v1alpha1",
     "pkg/apis/clientauthentication/v1beta1",
@@ -945,13 +1018,14 @@
     "github.com/knative/pkg/apis/duck",
     "github.com/knative/pkg/apis/duck/v1alpha1",
     "github.com/knative/pkg/logging",
+    "github.com/knative/pkg/logging/logkey",
     "github.com/knative/serving/pkg/apis/serving/v1alpha1",
     "github.com/knative/test-infra/scripts",
     "github.com/knative/test-infra/tools/dep-collector",
     "go.uber.org/zap",
+    "go.uber.org/zap/zapcore",
     "golang.org/x/net/context",
     "google.golang.org/api/calendar/v3",
-    "k8s.io/api/apps/v1",
     "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/api/meta",
@@ -964,6 +1038,7 @@
     "k8s.io/apimachinery/pkg/util/runtime",
     "k8s.io/apimachinery/pkg/util/sets",
     "k8s.io/apimachinery/pkg/util/sets/types",
+    "k8s.io/apimachinery/pkg/util/uuid",
     "k8s.io/apimachinery/pkg/watch",
     "k8s.io/client-go/discovery",
     "k8s.io/client-go/discovery/fake",
