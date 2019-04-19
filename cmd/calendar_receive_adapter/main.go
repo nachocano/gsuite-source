@@ -46,21 +46,25 @@ func main() {
 	if sink == "" {
 		log.Fatal("No sink given")
 	}
+	log.Printf("Sink %s", sink)
 
 	port := os.Getenv(envPort)
 	if port == "" {
-		port = "8443"
+		port = "8080"
 	}
+	log.Printf("Port %s", port)
 
 	certFile := os.Getenv(envCertificate)
 	if certFile == "" {
 		log.Fatal("No certificate given")
 	}
+	log.Printf("Certificate File %s", certFile)
 
 	keyFile := os.Getenv(envPrivateKey)
 	if keyFile == "" {
 		log.Fatal("No private key given")
 	}
+	log.Printf("Private Key File %s", keyFile)
 
 	ra, err := calendar.New(sink)
 	if err != nil {
@@ -73,7 +77,7 @@ func main() {
 	})
 
 	addr := fmt.Sprintf(":%s", port)
-	if err := http.ListenAndServeTLS(addr, certFile, keyFile, nil); err != nil {
+	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatalf("Failed to start Calendar Adapter: %v", zap.Error(err))
 	}
 
