@@ -89,8 +89,6 @@ func (in *CalendarSourceList) DeepCopyObject() runtime.Object {
 func (in *CalendarSourceSpec) DeepCopyInto(out *CalendarSourceSpec) {
 	*out = *in
 	in.GcpCredsSecret.DeepCopyInto(&out.GcpCredsSecret)
-	in.TlsCertificateSecret.DeepCopyInto(&out.TlsCertificateSecret)
-	in.TlsPrivateKeySecret.DeepCopyInto(&out.TlsPrivateKeySecret)
 	if in.Sink != nil {
 		in, out := &in.Sink, &out.Sink
 		*out = new(v1.ObjectReference)

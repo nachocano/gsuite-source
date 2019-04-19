@@ -150,18 +150,34 @@ func (r *reconciler) reconcile(ctx context.Context, source *sourcesv1alpha1.Cale
 	logger.Infof("Service domain %s", domain)
 	source.Status.MarkService()
 
-	webhookUUID, err := r.reconcileWebhook(ctx, source, domain)
+	webhookId, webhookResourceId, err := r.reconcileWebhook(ctx, source, domain)
 	if err != nil {
 		return err
 	}
-	source.Status.MarkWebHook(webhookUUID)
-	logger.Infof("WebHook UUID %s", webhookUUID)
+	source.Status.MarkWebHook(webhookId, webhookResourceId)
+	logger.Infof("WebHook Id %s - ResourceId %s", webhookId, webhookResourceId)
 	return nil
 }
 
 func (r *reconciler) finalize(ctx context.Context, source *sourcesv1alpha1.CalendarSource) error {
-	// TODO remove webhook
+	logger := logging.FromContext(ctx)
 	r.removeFinalizer(source)
+	if source.Status.WebhookId != "" && source.Status.WebhookResourceId != "" {
+		svc, err := gscalendar.NewService(ctx)
+		if err != nil {
+			return err
+		}
+
+		channel := &gscalendar.Channel{
+			Id:         source.Status.WebhookId,
+			ResourceId: source.Status.WebhookResourceId,
+		}
+		err = svc.Channels.Stop(channel).Do()
+		if err != nil {
+			return err
+		}
+		logger.Infof("Successfully removed Webhook Id %s - ResourceId %s", source.Status.WebhookId, source.Status.WebhookResourceId)
+	}
 	return nil
 }
 
@@ -198,9 +214,9 @@ func (r *reconciler) reconcileService(ctx context.Context, source *sourcesv1alph
 	return current, nil
 }
 
-func (r *reconciler) reconcileWebhook(ctx context.Context, source *sourcesv1alpha1.CalendarSource, domain string) (string, error) {
+func (r *reconciler) reconcileWebhook(ctx context.Context, source *sourcesv1alpha1.CalendarSource, domain string) (string, string, error) {
 	// If webhook doesn't exist, then create it.
-	if source.Status.WebhookUUIDKey == "" {
+	if source.Status.WebhookId == "" || source.Status.WebhookResourceId == "" {
 		r.addFinalizer(source)
 
 		webhookArgs := &webhookArgs{
@@ -209,20 +225,21 @@ func (r *reconciler) reconcileWebhook(ctx context.Context, source *sourcesv1alph
 			domain: domain,
 		}
 
-		hookID, err := r.createWebhook(ctx, webhookArgs)
+		id, resourceId, err := r.createWebhook(ctx, webhookArgs)
 		if err != nil {
 			source.Status.MarkNoWebHook("WebHookCreateFailed", "%s", err)
-			return "", err
+			return "", "", err
 		}
-		source.Status.WebhookUUIDKey = hookID
+		source.Status.WebhookId = id
+		source.Status.WebhookResourceId = resourceId
 	}
-	return source.Status.WebhookUUIDKey, nil
+	return source.Status.WebhookId, source.Status.WebhookResourceId, nil
 }
 
-func (r *reconciler) createWebhook(ctx context.Context, args *webhookArgs) (string, error) {
+func (r *reconciler) createWebhook(ctx context.Context, args *webhookArgs) (string, string, error) {
 	svc, err := gscalendar.NewService(ctx)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	channel := &gscalendar.Channel{
@@ -235,9 +252,9 @@ func (r *reconciler) createWebhook(ctx context.Context, args *webhookArgs) (stri
 	}
 	resp, err := svc.CalendarList.Watch(channel).Do()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return resp.Id, nil
+	return resp.Id, resp.ResourceId, nil
 }
 
 func (r *reconciler) sinkURIFrom(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (string, error) {

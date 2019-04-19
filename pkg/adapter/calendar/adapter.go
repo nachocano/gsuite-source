@@ -53,7 +53,7 @@ func (a *Adapter) HandleEvent(payload interface{}, header http.Header) {
 	hdr := http.Header(header)
 	err := a.handleEvent(payload, hdr)
 	if err != nil {
-		log.Printf("unexpected error handling Calendar event: %s", err)
+		log.Printf("unexpected error handling Calendar event: %v", err)
 	}
 }
 
@@ -73,7 +73,7 @@ func (a *Adapter) handleEvent(payload interface{}, hdr http.Header) error {
 	}
 
 	eventContext := cloudevents.EventContextV02{
-		ID:     "",
+		ID:     "123",
 		Type:   cloudEventType,
 		Source: *types.ParseURLRef("/CalendarSource"),
 	}.AsV02()
