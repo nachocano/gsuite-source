@@ -221,7 +221,7 @@ func (r *reconciler) reconcileWebhook(ctx context.Context, source *sourcesv1alph
 
 		webhookArgs := &webhookArgs{
 			id:     string(uuid.NewUUID()),
-			token:  string(uuid.NewUUID()),
+			token:  sourcesv1alpha1.CalendarSourceToken,
 			domain: domain,
 		}
 
@@ -250,10 +250,13 @@ func (r *reconciler) createWebhook(ctx context.Context, args *webhookArgs) (stri
 		Kind:    "api#channel",
 		Type:    "web_hook",
 	}
-	resp, err := svc.CalendarList.Watch(channel).Do()
+	// TODO make the calendarId configurable.
+	// To use another one instead of primary, we should retrieve the ids with calendarList.list method.
+	resp, err := svc.Events.Watch("primary", channel).Do()
 	if err != nil {
 		return "", "", err
 	}
+	// TODO read expiration and trigger some Event to recreate the webhook
 	return resp.Id, resp.ResourceId, nil
 }
 

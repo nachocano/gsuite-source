@@ -56,8 +56,12 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Print("Event received")
-		ra.HandleEvent(r.Body, r.Header)
+		event, err := ra.ParseEvent(r)
+		if err != nil {
+			log.Printf("Error parsing event: %v", err)
+			return
+		}
+		ra.HandleEvent(event, r.Header)
 	})
 
 	addr := fmt.Sprintf(":%s", port)

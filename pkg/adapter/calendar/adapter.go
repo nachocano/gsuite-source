@@ -18,15 +18,31 @@ package calendar
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/cloudevents/sdk-go/pkg/cloudevents"
 	"github.com/cloudevents/sdk-go/pkg/cloudevents/client"
 	"github.com/cloudevents/sdk-go/pkg/cloudevents/types"
 	"github.com/knative/eventing-sources/pkg/kncloudevents"
 	sourcesv1alpha1 "github.com/nachocano/gsuite-source/pkg/apis/sources/v1alpha1"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"sync"
+)
+
+const (
+	calendarHeaderResourceID   = "Goog-Resource-ID"
+	calendarHeaderResourceURI  = "Goog-Resource-URI"
+	calendarHeaderChannelToken = "Goog-Channel-Token"
+)
+
+var (
+	ErrInvalidHTTPMethod       = errors.New("invalid HTTP Method")
+	ErrMissingTokenEventHeader = errors.New("missing X-Goog-Channel-Token Header")
+	ErrTokenMismatch           = errors.New("token mismatch")
+	ErrParsingPayload          = errors.New("error parsing payload")
 )
 
 type Adapter struct {
@@ -49,11 +65,36 @@ func New(sink string) (*Adapter, error) {
 	return a, nil
 }
 
+func (a *Adapter) ParseEvent(r *http.Request) (interface{}, error) {
+	defer func() {
+		_, _ = io.Copy(ioutil.Discard, r.Body)
+		_ = r.Body.Close()
+	}()
+
+	if r.Method != http.MethodPost {
+		return nil, ErrInvalidHTTPMethod
+	}
+
+	token := r.Header.Get("X-" + calendarHeaderChannelToken)
+	if token == "" {
+		return nil, ErrMissingTokenEventHeader
+	}
+	if token != sourcesv1alpha1.CalendarSourceToken {
+		return nil, ErrTokenMismatch
+	}
+
+	payload, err := ioutil.ReadAll(r.Body)
+	if err != nil || len(payload) == 0 {
+		return nil, ErrParsingPayload
+	}
+	return payload, nil
+}
+
 func (a *Adapter) HandleEvent(payload interface{}, header http.Header) {
 	hdr := http.Header(header)
 	err := a.handleEvent(payload, hdr)
 	if err != nil {
-		log.Printf("unexpected error handling Calendar event: %v", err)
+		log.Printf("unexpected error handling calendar event: %v", err)
 	}
 }
 
@@ -66,18 +107,18 @@ func (a *Adapter) handleEvent(payload interface{}, hdr http.Header) error {
 		return fmt.Errorf("failed to create cloudevent client: %s", err)
 	}
 
-	cloudEventType := fmt.Sprintf("%s.%s", sourcesv1alpha1.CalendarSourceEventPrefix, "type")
-	subject := subjectFromCalendarEvent("", payload)
-	if err != nil {
-		return err
+	eventId := hdr.Get("X-" + calendarHeaderResourceID)
+	source := hdr.Get("X-" + calendarHeaderResourceURI)
+	extensions := map[string]interface{}{
+		calendarHeaderResourceID: eventId,
 	}
 
 	eventContext := cloudevents.EventContextV02{
-		ID:     "123",
-		Type:   cloudEventType,
-		Source: *types.ParseURLRef("/CalendarSource"),
+		ID:         eventId,
+		Type:       sourcesv1alpha1.CalendarSourceEventType,
+		Source:     *types.ParseURLRef(source),
+		Extensions: extensions,
 	}.AsV02()
-	eventContext.SetSubject(subject)
 
 	event := cloudevents.Event{
 		Context: eventContext,
@@ -86,8 +127,4 @@ func (a *Adapter) handleEvent(payload interface{}, hdr http.Header) error {
 
 	_, err = a.ceClient.Send(context.TODO(), event)
 	return err
-}
-
-func subjectFromCalendarEvent(calendarEvent string, payload interface{}) string {
-	return "/calendar-demo"
 }

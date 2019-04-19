@@ -39,7 +39,8 @@ type CalendarSourceSpec struct {
 }
 
 const (
-	CalendarSourceEventPrefix = "dev.knative.source.calendar"
+	CalendarSourceEventType = "org.nachocano.source.gsuite.calendar"
+	CalendarSourceToken = CalendarSourceEventType
 )
 
 const (
