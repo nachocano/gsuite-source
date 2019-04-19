@@ -57,7 +57,7 @@ type Adapter struct {
 func New(sink string) (*Adapter, error) {
 	a := new(Adapter)
 	var err error
-
+	a.sink = sink
 	a.ceClient, err = kncloudevents.NewDefaultClient(sink)
 	if err != nil {
 		return nil, err
@@ -112,6 +112,9 @@ func (a *Adapter) handleEvent(payload interface{}, hdr http.Header) error {
 	extensions := map[string]interface{}{
 		calendarHeaderResourceID: eventId,
 	}
+
+	log.Printf("EventId %s", eventId)
+	log.Printf("Source %s", source)
 
 	eventContext := cloudevents.EventContextV02{
 		ID:         eventId,

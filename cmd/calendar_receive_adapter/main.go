@@ -58,8 +58,10 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		event, err := ra.ParseEvent(r)
 		if err != nil {
-			log.Printf("Error parsing event: %v", err)
-			return
+			if err != calendar.ErrParsingPayload {
+				log.Printf("Error parsing event: %v", err)
+				return
+			}
 		}
 		ra.HandleEvent(event, r.Header)
 	})
