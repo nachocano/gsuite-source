@@ -22,10 +22,10 @@ spec:
   group: sources.nachocano.org
   names:
     categories:
-    - all
-    - knative
-    - eventing
-    - sources
+      - all
+      - knative
+      - eventing
+      - sources
     kind: CalendarSource
     plural: calendarsources
   scope: Namespaced
@@ -44,12 +44,19 @@ spec:
           properties:
             gcpCredsSecret:
               type: object
+            tlsCertificateSecret:
+              type: object
+            tlsPrivateKeySecret:
+              type: object
             serviceAccountName:
               type: string
             sink:
               type: object
           required:
-          - gcpCredsSecret
+            - gcpCredsSecret
+            - tlsCertificateSecret
+            - tlsPrivateKeySecret
+            - sink
           type: object
         status:
           properties:
@@ -71,8 +78,8 @@ spec:
                   type:
                     type: string
                 required:
-                - type
-                - status
+                  - type
+                  - status
                 type: object
               type: array
             sinkUri:

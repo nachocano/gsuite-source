@@ -15,7 +15,7 @@ gcloud iam service-accounts keys create gsuite-source.json \
 
 kubectl -n gsuite-sources create secret generic gsuite-source-key --from-file=key.json=gsuite-source.json --dry-run -o yaml | kubectl apply --filename -
 
-kubectl -n default create secret generic gcp-key --from-file=key.json=gsuite-source.json
+kubectl -n default create secret generic gs-source-key --from-file=key.json=gsuite-source.json
 
 Domain verification with Search
 
@@ -25,5 +25,10 @@ https://search.google.com/search-console/about?hl=en&utm_source=wmx&utm_medium=w
 
 https://default.nachocano.org
 
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout key.pem -out cert.pem
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout gsuite-private-key.pem -out gsuite-cert.pem
 
+kubectl -n gsuite-sources create secret generic gsuite-private-key --from-file=key.pem=gsuite-private-key.pem --dry-run -o yaml | kubectl apply --filename -
+kubectl -n default create secret generic gs-private-key --from-file=key.pem=gsuite-private-key.pem
+
+kubectl -n gsuite-sources create secret generic gsuite-cert-key --from-file=cert.pem=gsuite-cert.pem --dry-run -o yaml | kubectl apply --filename -
+kubectl -n default create secret generic gs-cert-key --from-file=cert.pem=gsuite-cert.pem

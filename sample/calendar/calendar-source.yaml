@@ -18,8 +18,14 @@ metadata:
   name: calendar-source-sample
 spec:
   gcpCredsSecret:
-    name: gcp-key
+    name: gs-source-key
     key: key.json
+  tlsCertificateSecret:
+    name: gs-cert-key
+    key: cert.pem
+  tlsPrivateKeySecret:
+    name: gs-private-key
+    key: key.pem
   sink:
     apiVersion: serving.knative.dev/v1alpha1
     kind: Service

@@ -31,6 +31,10 @@ const (
 	envPort = "PORT"
 	// Environment variable containing the sink
 	envSink = "SINK"
+	// Environment variable containing the certificate file
+	envCertificate = "CERTIFICATE"
+	// Environment variable containing the private key file
+	envPrivateKey = "PRIVATE_KEY"
 )
 
 func main() {
@@ -48,6 +52,16 @@ func main() {
 		port = "8443"
 	}
 
+	certFile := os.Getenv(envCertificate)
+	if certFile == "" {
+		log.Fatal("No certificate given")
+	}
+
+	keyFile := os.Getenv(envPrivateKey)
+	if keyFile == "" {
+		log.Fatal("No private key given")
+	}
+
 	ra, err := calendar.New(sink)
 	if err != nil {
 		log.Fatalf("Failed to create Calendar Adapter: %v", zap.Error(err))
@@ -59,7 +73,7 @@ func main() {
 	})
 
 	addr := fmt.Sprintf(":%s", port)
-	if err := http.ListenAndServeTLS(addr, "", "", nil); err != nil {
+	if err := http.ListenAndServeTLS(addr, certFile, keyFile, nil); err != nil {
 		log.Fatalf("Failed to start Calendar Adapter: %v", zap.Error(err))
 	}
 
