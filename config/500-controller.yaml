@@ -43,10 +43,6 @@ spec:
           volumeMounts:
             - name: gs-source-key
               mountPath: /var/secrets/google
-            - name: gs-cert-key
-              mountPath: /var/secrets/tls/cert
-            - name: gs-private-key
-              mountPath: /var/secrets/tls/key
           resources:
             limits:
               cpu: 100m
@@ -58,11 +54,5 @@ spec:
         - name: gs-source-key
           secret:
             secretName: gsuite-source-key
-        - name: gs-cert-key
-          secret:
-            secretName: gsuite-cert-key
-        - name: gs-private-key
-          secret:
-            secretName: gsuite-private-key
       serviceAccount: gsuite-controller-manager
       terminationGracePeriodSeconds: 10

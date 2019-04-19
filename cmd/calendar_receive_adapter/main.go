@@ -31,10 +31,6 @@ const (
 	envPort = "PORT"
 	// Environment variable containing the sink
 	envSink = "SINK"
-	// Environment variable containing the certificate file
-	envCertificate = "CERTIFICATE"
-	// Environment variable containing the private key file
-	envPrivateKey = "PRIVATE_KEY"
 )
 
 func main() {
@@ -53,18 +49,6 @@ func main() {
 		port = "8080"
 	}
 	log.Printf("Port %s", port)
-
-	certFile := os.Getenv(envCertificate)
-	if certFile == "" {
-		log.Fatal("No certificate given")
-	}
-	log.Printf("Certificate File %s", certFile)
-
-	keyFile := os.Getenv(envPrivateKey)
-	if keyFile == "" {
-		log.Fatal("No private key given")
-	}
-	log.Printf("Private Key File %s", keyFile)
 
 	ra, err := calendar.New(sink)
 	if err != nil {

@@ -34,10 +34,6 @@ type CalendarSourceSpec struct {
 
 	GcpCredsSecret corev1.SecretKeySelector `json:"gcpCredsSecret"`
 
-	TlsCertificateSecret corev1.SecretKeySelector `json:"tlsCertificateSecret"`
-
-	TlsPrivateKeySecret corev1.SecretKeySelector `json:"tlsPrivateKeySecret"`
-
 	// +optional
 	Sink *corev1.ObjectReference `json:"sink"`
 }

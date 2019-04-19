@@ -44,18 +44,12 @@ spec:
           properties:
             gcpCredsSecret:
               type: object
-            tlsCertificateSecret:
-              type: object
-            tlsPrivateKeySecret:
-              type: object
             serviceAccountName:
               type: string
             sink:
               type: object
           required:
             - gcpCredsSecret
-            - tlsCertificateSecret
-            - tlsPrivateKeySecret
             - sink
           type: object
         status:

@@ -124,7 +124,7 @@ func (r *reconciler) reconcile(ctx context.Context, source *sourcesv1alpha1.Cale
 
 	source.Status.InitializeConditions()
 
-	_, _, _, err := r.secretsFrom(ctx, source)
+	_, err := r.secretFrom(ctx, source)
 	if err != nil {
 		return err
 	}
@@ -249,35 +249,16 @@ func (r *reconciler) sinkURIFrom(ctx context.Context, source *sourcesv1alpha1.Ca
 	return uri, err
 }
 
-func (r *reconciler) secretsFrom(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (string, string, string, error) {
-
-	gcpSecretVal, err := r.secretFrom(ctx, source.Namespace, source.Spec.GcpCredsSecret)
+func (r *reconciler) secretFrom(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (string, error) {
+	secret := &corev1.Secret{}
+	err := r.client.Get(ctx, client.ObjectKey{Namespace: source.Namespace, Name: source.Spec.GcpCredsSecret.Name}, secret)
 	if err != nil {
 		source.Status.MarkNoSecrets("GcpCredsSecretNotFound", "%s", err)
-		return "", "", "", err
-	}
-	tlsCertVal, err := r.secretFrom(ctx, source.Namespace, source.Spec.TlsCertificateSecret)
-	if err != nil {
-		source.Status.MarkNoSecrets("TlsCertificateSecretNotFound", "%s", err)
-		return "", "", "", err
-	}
-	tlsPrivateKeyVal, err := r.secretFrom(ctx, source.Namespace, source.Spec.TlsPrivateKeySecret)
-	if err != nil {
-		source.Status.MarkNoSecrets("TlsPrivateKeySecretNotFound", "%s", err)
-		return "", "", "", err
-	}
-	return gcpSecretVal, tlsCertVal, tlsPrivateKeyVal, nil
-}
-
-func (r *reconciler) secretFrom(ctx context.Context, namespace string, secretSelector corev1.SecretKeySelector) (string, error) {
-	secret := &corev1.Secret{}
-	err := r.client.Get(ctx, client.ObjectKey{Namespace: namespace, Name: secretSelector.Name}, secret)
-	if err != nil {
 		return "", err
 	}
-	secretVal, ok := secret.Data[secretSelector.Key]
+	secretVal, ok := secret.Data[source.Spec.GcpCredsSecret.Key]
 	if !ok {
-		return "", fmt.Errorf("key %q not found in secret %q", secretSelector.Key, secretSelector.Name)
+		return "", fmt.Errorf("key %q not found in secret %q", source.Spec.GcpCredsSecret.Key, source.Spec.GcpCredsSecret.Name)
 	}
 	return string(secretVal), nil
 }

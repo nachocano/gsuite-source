@@ -25,17 +25,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const (
-	certVolume          = "gs-cert-key"
-	certMountPath       = "/var/secrets/tls/cert"
-	privateKeyVolume    = "gs-private-key"
-	privateKeyMountPath = "/var/secrets/tls/key"
-)
-
 // MakeService generates, but does not create, a Service for the given CalendarSource.
 func MakeService(source *sourcesv1alpha1.CalendarSource, receiveAdapterImage string) *servingv1alpha1.Service {
-	certFile := fmt.Sprintf("%s/%s", certMountPath, source.Spec.TlsCertificateSecret.Key)
-	keyFile := fmt.Sprintf("%s/%s", privateKeyMountPath, source.Spec.TlsPrivateKeySecret.Key)
 	labels := map[string]string{
 		"receive-adapter": "calendar",
 	}
@@ -59,44 +50,6 @@ func MakeService(source *sourcesv1alpha1.CalendarSource, receiveAdapterImage str
 									{
 										Name:  "SINK",
 										Value: sinkURI,
-									},
-									{
-										Name:  "CERTIFICATE",
-										Value: certFile,
-									},
-									{
-										Name:  "PRIVATE_KEY",
-										Value: keyFile,
-									},
-								},
-								VolumeMounts: []corev1.VolumeMount{
-									{
-										Name:      certVolume,
-										MountPath: certMountPath,
-										ReadOnly:  true,
-									},
-									{
-										Name:      privateKeyVolume,
-										MountPath: privateKeyMountPath,
-										ReadOnly:  true,
-									},
-								},
-							},
-							Volumes: []corev1.Volume{
-								{
-									Name: certVolume,
-									VolumeSource: corev1.VolumeSource{
-										Secret: &corev1.SecretVolumeSource{
-											SecretName: source.Spec.TlsCertificateSecret.Name,
-										},
-									},
-								},
-								{
-									Name: privateKeyVolume,
-									VolumeSource: corev1.VolumeSource{
-										Secret: &corev1.SecretVolumeSource{
-											SecretName: source.Spec.TlsPrivateKeySecret.Name,
-										},
 									},
 								},
 							},
