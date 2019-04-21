@@ -170,11 +170,10 @@ func (r *reconciler) finalize(ctx context.Context, source *sourcesv1alpha1.Calen
 	logger := logging.FromContext(ctx)
 	r.removeFinalizer(source)
 	if source.Status.WebhookId != "" && source.Status.WebhookResourceId != "" {
-		svc, err := gscalendar.NewService(ctx)
+		svc, err := r.createCalendarService(ctx, source.Spec.GcpCredsSecret.Key, source.Spec.EmailAddress)
 		if err != nil {
 			return err
 		}
-
 		channel := &gscalendar.Channel{
 			Id:         source.Status.WebhookId,
 			ResourceId: source.Status.WebhookResourceId,
@@ -246,22 +245,10 @@ func (r *reconciler) reconcileWebhook(ctx context.Context, source *sourcesv1alph
 }
 
 func (r *reconciler) createWebhook(ctx context.Context, args *webhookArgs) (string, string, error) {
-	// Doing this as there is no way to impersonate a particular user calendar
-	// using the GOOGLE_APPLICATION_CREDENTIALS env variable.
-	credsFile := fmt.Sprintf("%s/%s", credsMountPath, args.credentials)
-	jsonCredentials, err := ioutil.ReadFile(credsFile)
+	svc, err := r.createCalendarService(ctx, args.credentials, args.email)
 	if err != nil {
 		return "", "", err
 	}
-	conf, err := google.JWTConfigFromJSON(jsonCredentials, gscalendar.CalendarScope)
-	if err != nil {
-		return "", "", err
-	}
-	// Impersonate the following user using the service account credentials
-	conf.Subject = args.email
-
-	client := conf.Client(ctx)
-	svc, err := gscalendar.NewService(ctx, option.WithHTTPClient(client))
 	channel := &gscalendar.Channel{
 		Id:      args.id,
 		Token:   args.token,
@@ -275,6 +262,25 @@ func (r *reconciler) createWebhook(ctx context.Context, args *webhookArgs) (stri
 	}
 	// TODO read expiration and trigger some Event to recreate the webhook
 	return resp.Id, resp.ResourceId, nil
+}
+
+func (r *reconciler) createCalendarService(ctx context.Context, credentials, email string) (*gscalendar.Service, error) {
+	// Doing this as there is no way to impersonate a particular user calendar
+	// using the GOOGLE_APPLICATION_CREDENTIALS env variable.
+	credsFile := fmt.Sprintf("%s/%s", credsMountPath, credentials)
+	jsonCredentials, err := ioutil.ReadFile(credsFile)
+	if err != nil {
+		return nil, err
+	}
+	conf, err := google.JWTConfigFromJSON(jsonCredentials, gscalendar.CalendarScope)
+	if err != nil {
+		return nil, err
+	}
+	// Impersonate the following user using the service account credentials
+	conf.Subject = email
+
+	client := conf.Client(ctx)
+	return gscalendar.NewService(ctx, option.WithHTTPClient(client))
 }
 
 func (r *reconciler) sinkURIFrom(ctx context.Context, source *sourcesv1alpha1.CalendarSource) (string, error) {
