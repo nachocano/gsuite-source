@@ -29,18 +29,14 @@ var _ runtime.Object = (*CalendarSource)(nil)
 var _ = duck.VerifyType(&CalendarSource{}, &duckv1alpha1.Conditions{})
 
 type CalendarSourceSpec struct {
-	// +optional
-	ServiceAccountName string `json:"serviceAccountName,omitempty"`
-
+	EmailAddress   string                   `json:"emailAddress"`
 	GcpCredsSecret corev1.SecretKeySelector `json:"gcpCredsSecret"`
-
-	// +optional
-	Sink *corev1.ObjectReference `json:"sink"`
+	Sink           *corev1.ObjectReference  `json:"sink"`
 }
 
 const (
 	CalendarSourceEventType = "org.nachocano.source.gsuite.calendar"
-	CalendarSourceToken = CalendarSourceEventType
+	CalendarSourceToken     = CalendarSourceEventType
 )
 
 const (

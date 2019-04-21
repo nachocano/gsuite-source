@@ -17,6 +17,7 @@ kind: CalendarSource
 metadata:
   name: calendar-source-sample
 spec:
+  emailAddress: <YOUR EMAIL ADDRESS>
   gcpCredsSecret:
     name: gs-source-key
     key: key.json

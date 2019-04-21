@@ -44,11 +44,12 @@ spec:
           properties:
             gcpCredsSecret:
               type: object
-            serviceAccountName:
+            emailAddress:
               type: string
             sink:
               type: object
           required:
+            - emailAddress
             - gcpCredsSecret
             - sink
           type: object

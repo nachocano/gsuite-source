@@ -62,6 +62,7 @@ type webhookArgs struct {
 	token       string
 	domain      string
 	credentials string
+	email       string
 }
 
 // Add creates a new CalendarSource Controller and adds it to the
@@ -230,6 +231,7 @@ func (r *reconciler) reconcileWebhook(ctx context.Context, source *sourcesv1alph
 			token:       sourcesv1alpha1.CalendarSourceToken,
 			domain:      domain,
 			credentials: source.Spec.GcpCredsSecret.Key,
+			email:       source.Spec.EmailAddress,
 		}
 
 		id, resourceId, err := r.createWebhook(ctx, webhookArgs)
@@ -256,7 +258,7 @@ func (r *reconciler) createWebhook(ctx context.Context, args *webhookArgs) (stri
 		return "", "", err
 	}
 	// Impersonate the following user using the service account credentials
-	conf.Subject = "icano@nachocano.org"
+	conf.Subject = args.email
 
 	client := conf.Client(ctx)
 	svc, err := gscalendar.NewService(ctx, option.WithHTTPClient(client))
