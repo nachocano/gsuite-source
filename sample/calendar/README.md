@@ -27,3 +27,11 @@ https://default.nachocano.org
 
 Enable HTTPS
 
+https://developers.google.com/calendar/auth
+
+https://developers.google.com/admin-sdk/directory/v1/guides/delegation
+
+GSuite account, security, authorize client ID of service account
+
+
+

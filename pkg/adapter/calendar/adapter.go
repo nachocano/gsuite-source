@@ -115,6 +115,14 @@ func (a *Adapter) handleEvent(payload interface{}, hdr http.Header) error {
 
 	log.Printf("EventId %s", eventId)
 	log.Printf("Source %s", source)
+	log.Printf("Resource State %s", hdr.Get("X-Goog-Resource-State"))
+	log.Printf("Channel %s", hdr.Get("X-Goog-Channel-ID"))
+	log.Printf("Expiration %s", hdr.Get("X-Goog-Channel-Expiration"))
+	log.Printf("Token %s", hdr.Get("X-Goog-Channel-Token"))
+
+	//if payload != nil {
+	//	log.Printf("Payload %s", payload)
+	//}
 
 	eventContext := cloudevents.EventContextV02{
 		ID:         eventId,

@@ -19,6 +19,9 @@ package calendar
 import (
 	"context"
 	"fmt"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
+	"io/ioutil"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"log"
@@ -50,12 +53,15 @@ const (
 	controllerAgentName = "calendar-source-controller"
 	raImageEnvVar       = "CALENDAR_RA_IMAGE"
 	finalizerName       = controllerAgentName
+
+	credsMountPath = "/var/secrets/google"
 )
 
 type webhookArgs struct {
-	id     string
-	token  string
-	domain string
+	id          string
+	token       string
+	domain      string
+	credentials string
 }
 
 // Add creates a new CalendarSource Controller and adds it to the
@@ -220,9 +226,10 @@ func (r *reconciler) reconcileWebhook(ctx context.Context, source *sourcesv1alph
 		r.addFinalizer(source)
 
 		webhookArgs := &webhookArgs{
-			id:     string(uuid.NewUUID()),
-			token:  sourcesv1alpha1.CalendarSourceToken,
-			domain: domain,
+			id:          string(uuid.NewUUID()),
+			token:       sourcesv1alpha1.CalendarSourceToken,
+			domain:      domain,
+			credentials: source.Spec.GcpCredsSecret.Key,
 		}
 
 		id, resourceId, err := r.createWebhook(ctx, webhookArgs)
@@ -237,21 +244,29 @@ func (r *reconciler) reconcileWebhook(ctx context.Context, source *sourcesv1alph
 }
 
 func (r *reconciler) createWebhook(ctx context.Context, args *webhookArgs) (string, string, error) {
-	svc, err := gscalendar.NewService(ctx)
+	// Doing this as there is no way to impersonate a particular user calendar
+	// using the GOOGLE_APPLICATION_CREDENTIALS env variable.
+	credsFile := fmt.Sprintf("%s/%s", credsMountPath, args.credentials)
+	jsonCredentials, err := ioutil.ReadFile(credsFile)
 	if err != nil {
 		return "", "", err
 	}
+	conf, err := google.JWTConfigFromJSON(jsonCredentials, gscalendar.CalendarScope)
+	if err != nil {
+		return "", "", err
+	}
+	// Impersonate the following user using the service account credentials
+	conf.Subject = "icano@nachocano.org"
 
+	client := conf.Client(ctx)
+	svc, err := gscalendar.NewService(ctx, option.WithHTTPClient(client))
 	channel := &gscalendar.Channel{
 		Id:      args.id,
 		Token:   args.token,
 		Address: fmt.Sprintf("https://%s", args.domain),
-		Payload: true,
 		Kind:    "api#channel",
 		Type:    "web_hook",
 	}
-	// TODO make the calendarId configurable.
-	// To use another one instead of primary, we should retrieve the ids with calendarList.list method.
 	resp, err := svc.Events.Watch("primary", channel).Do()
 	if err != nil {
 		return "", "", err
