@@ -18,7 +18,6 @@ package calendar
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/cloudevents/sdk-go/pkg/cloudevents"
 	"github.com/cloudevents/sdk-go/pkg/cloudevents/client"
@@ -29,20 +28,15 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 )
 
 const (
-	calendarHeaderResourceID   = "Goog-Resource-ID"
-	calendarHeaderResourceURI  = "Goog-Resource-URI"
-	calendarHeaderChannelToken = "Goog-Channel-Token"
-)
-
-var (
-	ErrInvalidHTTPMethod       = errors.New("invalid HTTP Method")
-	ErrMissingTokenEventHeader = errors.New("missing X-Goog-Channel-Token Header")
-	ErrTokenMismatch           = errors.New("token mismatch")
-	ErrParsingPayload          = errors.New("error parsing payload")
+	calendarHeaderResourceID    = "Goog-Resource-ID"
+	calendarHeaderResourceURI   = "Goog-Resource-URI"
+	calendarHeaderChannelToken  = "Goog-Channel-Token"
+	calendarHeaderResourceState = "Goog-Resource-State"
 )
 
 type Adapter struct {
@@ -72,21 +66,27 @@ func (a *Adapter) ParseEvent(r *http.Request) (interface{}, error) {
 	}()
 
 	if r.Method != http.MethodPost {
-		return nil, ErrInvalidHTTPMethod
+		return nil, fmt.Errorf("invalid HTTP Method %s", r.Method)
 	}
 
 	token := r.Header.Get("X-" + calendarHeaderChannelToken)
 	if token == "" {
-		return nil, ErrMissingTokenEventHeader
+		return nil, fmt.Errorf("missing X-%s header", calendarHeaderChannelToken)
 	}
 	if token != sourcesv1alpha1.CalendarSourceToken {
-		return nil, ErrTokenMismatch
+		return nil, fmt.Errorf("token mismatch, want %q, got %q", sourcesv1alpha1.CalendarSourceToken, token)
 	}
 
-	payload, err := ioutil.ReadAll(r.Body)
-	if err != nil || len(payload) == 0 {
-		return nil, ErrParsingPayload
+	if strings.EqualFold("sync", r.Header.Get("X-"+calendarHeaderResourceState)) {
+		return nil, fmt.Errorf("sync message received")
 	}
+
+	// TODO payloads always empty, remove this.
+	payload, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing payload: %v", err)
+	}
+	// len(payload) == 0
 	return payload, nil
 }
 
@@ -113,12 +113,9 @@ func (a *Adapter) handleEvent(payload interface{}, hdr http.Header) error {
 		calendarHeaderResourceID: eventId,
 	}
 
-	log.Printf("EventId %s", eventId)
+	log.Printf("ResourceId %s", eventId)
 	log.Printf("Source %s", source)
-	log.Printf("Resource State %s", hdr.Get("X-Goog-Resource-State"))
-	log.Printf("Channel %s", hdr.Get("X-Goog-Channel-ID"))
 	log.Printf("Expiration %s", hdr.Get("X-Goog-Channel-Expiration"))
-	log.Printf("Token %s", hdr.Get("X-Goog-Channel-Token"))
 
 	//if payload != nil {
 	//	log.Printf("Payload %s", payload)

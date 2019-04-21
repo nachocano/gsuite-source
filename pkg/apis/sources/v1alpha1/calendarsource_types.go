@@ -29,6 +29,7 @@ var _ runtime.Object = (*CalendarSource)(nil)
 var _ = duck.VerifyType(&CalendarSource{}, &duckv1alpha1.Conditions{})
 
 type CalendarSourceSpec struct {
+	// TODO be able to set many, so that we create a single Service listening to events from many calendars.
 	EmailAddress   string                   `json:"emailAddress"`
 	GcpCredsSecret corev1.SecretKeySelector `json:"gcpCredsSecret"`
 	Sink           *corev1.ObjectReference  `json:"sink"`
