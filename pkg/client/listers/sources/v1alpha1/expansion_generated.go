@@ -24,11 +24,3 @@ type CalendarSourceListerExpansion interface{}
 // CalendarSourceNamespaceListerExpansion allows custom methods to be added to
 // CalendarSourceNamespaceLister.
 type CalendarSourceNamespaceListerExpansion interface{}
-
-// SheetsSourceListerExpansion allows custom methods to be added to
-// SheetsSourceLister.
-type SheetsSourceListerExpansion interface{}
-
-// SheetsSourceNamespaceListerExpansion allows custom methods to be added to
-// SheetsSourceNamespaceLister.
-type SheetsSourceNamespaceListerExpansion interface{}

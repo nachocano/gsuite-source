@@ -8,6 +8,8 @@ gcloud iam service-accounts create gsuite-source
 
 gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member=serviceAccount:gsuite-source@$PROJECT_ID.iam.gserviceaccount.com \
+  --role roles/viewer
+  
   --role roles/owner
   
 gcloud iam service-accounts keys create gsuite-source.json \
@@ -15,7 +17,7 @@ gcloud iam service-accounts keys create gsuite-source.json \
 
 kubectl -n gsuite-sources create secret generic gsuite-source-key --from-file=key.json=gsuite-source.json --dry-run -o yaml | kubectl apply --filename -
 
-kubectl -n default create secret generic gs-source-key --from-file=key.json=gsuite-source.json
+// kubectl -n default create secret generic gs-source-key --from-file=key.json=gsuite-source.json
 
 Domain verification with Search
 

@@ -12,11 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: v1
-kind: Secret
+apiVersion: sources.nachocano.org/v1alpha1
+kind: CalendarSource
 metadata:
-  name: sheets-secret
-type: Opaque
-stringData:
-  accessToken: <YOUR OAUTH ACCESS TOKEN>
-  secretToken: <YOUR OAUTH SECRET TOKEN>
+  name: calendar-source-sample
+spec:
+  emailAddress: icano@nachocano.org
+  gcpCredsSecret:
+    name: gs-source-key
+    key: key.json
+  sink:
+    apiVersion: serving.knative.dev/v1alpha1
+    kind: Service
+    name: calendar-event-display

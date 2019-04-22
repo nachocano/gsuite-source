@@ -54,8 +54,6 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 	// Group=sources.nachocano.org, Version=v1alpha1
 	case v1alpha1.SchemeGroupVersion.WithResource("calendarsources"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Sources().V1alpha1().CalendarSources().Informer()}, nil
-	case v1alpha1.SchemeGroupVersion.WithResource("sheetssources"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Sources().V1alpha1().SheetsSources().Informer()}, nil
 
 	}
 
