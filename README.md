@@ -65,6 +65,10 @@ All the examples below use the same service account but you can create different
       kubectl -n gsuite-sources create secret generic gsuite-source-key \
         --from-file=key.json=gsuite-source.json --dry-run -o yaml | kubectl apply --filename -
       ```
+     1. Create another secret for the downloaded key that we will use in the different examples. 
+      ```shell 
+      kubectl -n default create secret generic gs-source-key --from-file=key.json=gsuite-source.json
+      ```     
 
 ## Install G Suite Sources
 
@@ -78,6 +82,10 @@ Wait until the controller has `Running` status:
 
 ```shell
 kubectl get pods -n gsuite-sources 
+```
+```
+NAME                          READY   STATUS    RESTARTS   AGE
+gsuite-controller-manager-0   1/1     Running   0          14s
 ```
 
 The G Suite controller is up and running! 
