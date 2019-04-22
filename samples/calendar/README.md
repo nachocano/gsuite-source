@@ -1,39 +1,22 @@
-gcloud services list --available
+# Google Calendar Source 
 
-gcloud beta iam roles list
+This sample shows how to wire Google Calendar events into Knative Eventing.
 
-gcloud services enable calendar-json.googleapis.com
+## Prerequisites
 
-gcloud iam service-accounts create gsuite-source
+You will need:
 
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member=serviceAccount:gsuite-source@$PROJECT_ID.iam.gserviceaccount.com \
-  --role roles/viewer
-  
-  --role roles/owner
-  
-gcloud iam service-accounts keys create gsuite-source.json \
-  --iam-account=gsuite-source@$PROJECT_ID.iam.gserviceaccount.com  
+1. Follow these [prerequisites](https://github.com/nachocano/gsuite-source#prerequisites).
+1. Enable Google Calendar API in your GCP project by executing the following command: 
+    ```shell
+    gcloud services enable calendar-json.googleapis.com
+    ```
+1. Register your domain to be able to receive push notifications. Follow [these](https://developers.google.com/calendar/v3/push#registering-your-domain) steps.
+1. Delegate domain-wide authority to your service account. 
+Follow [these](https://developers.google.com/admin-sdk/directory/v1/guides/delegation#delegate_domain-wide_authority_to_your_service_account) steps, and
+    1. When specifying the API scopes, enter the calendar scope: `https://www.googleapis.com/auth/calendar`. 
+    1. When asked for the Client ID, enter the your service account's one that you saved during the previous prerequisites.
 
-kubectl -n gsuite-sources create secret generic gsuite-source-key --from-file=key.json=gsuite-source.json --dry-run -o yaml | kubectl apply --filename -
+## 
 
-// kubectl -n default create secret generic gs-source-key --from-file=key.json=gsuite-source.json
-
-Domain verification with Search
-
-https://developers.google.com/calendar/v3/push
-
-https://search.google.com/search-console/about?hl=en&utm_source=wmx&utm_medium=wmx-welcome
-
-https://default.nachocano.org
-
-Enable HTTPS
-
-https://developers.google.com/calendar/auth
-
-https://developers.google.com/admin-sdk/directory/v1/guides/delegation
-
-GSuite account, security, authorize client ID of service account
-
-
-
+## 

@@ -71,7 +71,7 @@ All the examples below use the same service account but you can create different
 Install the G Suite sources by executing:
     
 ```shell
-`ko apply -f ./config`
+ko apply -f ./config
 ```
 
 Wait until the controller has `Running` status:
