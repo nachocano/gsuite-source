@@ -116,7 +116,30 @@ kubectl -n default logs calendar-event-display-XXXX user-container
 You should see log lines similar to:
 
 ```
+☁️  CloudEvent: valid ✅
+Context Attributes,
+  SpecVersion: 0.2
+  Type: org.nachocano.source.gsuite.calendar
+  Source: https://www.googleapis.com/calendar/v3/calendars/primary/events?alt=json&maxResults=250&prettyPrint=false&alt=json
+  ID: ExEtu74ipgEsOKwJEmos06HzMSI
+  Time: 2019-04-22T05:53:53.646880605Z
+  ContentType: application/json
+  Extensions:
+    goog: map[resource-id:["ExEtu74ipgEsOKwJEmos06HzMSI"]]
+Transport Context,
+  URI: /
+  Host: calendar-event-display.default.svc.cluster.local
+  Method: POST
+Data,
+  ""
+```
 
+### Cleanup
+
+You can remove the `CalendarSource` webhook by deleting the Source:
+
+```shell
+kubectl -n default delete calendarsources calendar-source-sample
 ```
 
 ## Limitations & Known Issues
