@@ -60,7 +60,7 @@ All the examples below use the same service account but you can create different
        ```
     1. Create a secret on the Kubernetes cluster for the downloaded key. You need
       to store this key in `key.json` in a secret named `gsuite-source-key`. 
-      This is used by the `controller` to create web hooks to G Suite Push notifications.
+      This is used by the `controller` to create webhooks to G Suite Push notifications.
       ```shell 
       kubectl -n gsuite-sources create secret generic gsuite-source-key \
         --from-file=key.json=gsuite-source.json --dry-run -o yaml | kubectl apply --filename -
@@ -92,8 +92,8 @@ The G Suite controller is up and running!
 
 ## G Suite Sources CRDs
 
-Below you can find the list of the currently supported G Suite sources CRDs that are packaged with 
-this installation and their respective examples.
+Below you can find the list of the currently supported G Suite sources CRDs and their respective examples 
+that are packaged with this installation.
 
 | Name | Status | Support | Description |
 |------|--------|---------|-------------|

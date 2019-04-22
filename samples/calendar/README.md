@@ -19,7 +19,7 @@ Follow [these](https://developers.google.com/admin-sdk/directory/v1/guides/deleg
 
 ## Details
 The actual implementation contacts the Google Calendar API in order to create a 
-channel, which is basically a web hook, to receive Push Notifications on Calendar event changes. 
+channel, which is basically a webhook, to receive Push Notifications on Calendar event changes. 
 The authentication is delegated to the service account, thus no user involvement is required.    
 The notifications are delivered to a Knative Service (listening on an HTTPS public address), which converts  
 the messages into [CloudEvents](https://github.com/cloudevents/spec) and forwards them to the configured sink.
@@ -155,4 +155,4 @@ to retrieve the updated list of resources is needed. We are not performing that 
 1. The notification channel expires after a configurable period of time (by default 1 hour). We are not renewing that channel. 
 1. Only listens to events from the *primary* calendar of the specified `emailAddress` account. 
 1. Only a single email address can be specified.
-1. If there is a problem updating the status of the `CalendarSource`, more than one web hook might be created. 
+1. If there is a problem updating the status of the `CalendarSource`, more than one webhook might be created. 
