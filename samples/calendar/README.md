@@ -101,6 +101,10 @@ Verify that the `CalendarSource` is ready by executing the following command:
 ```shell
 kubectl get calendarsources
 ```
+```
+NAME                     READY   REASON
+calendar-source-sample   True
+```
 
 ### Create Events
 
