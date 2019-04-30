@@ -562,10 +562,11 @@
   revision = "2538eef75904eff384a2551359968e40c207d9d2"
 
 [[projects]]
-  digest = "1:f149e0d79c34bf396526e9498973a2add760add95b13248f981d7dc04402d214"
+  digest = "1:7687d3691fd364b77bea5563921bbefdba17c6864e3935ee7a4a5cab04e22317"
   name = "google.golang.org/api"
   packages = [
     "calendar/v3",
+    "drive/v3",
     "gensupport",
     "googleapi",
     "googleapi/internal/uritemplates",
@@ -1026,6 +1027,7 @@
     "go.uber.org/zap/zapcore",
     "golang.org/x/oauth2/google",
     "google.golang.org/api/calendar/v3",
+    "google.golang.org/api/drive/v3",
     "google.golang.org/api/option",
     "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/api/errors",

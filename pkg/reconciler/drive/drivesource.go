@@ -34,7 +34,7 @@ import (
 	sourcesv1alpha1 "github.com/nachocano/gsuite-source/pkg/apis/sources/v1alpha1"
 	"github.com/nachocano/gsuite-source/pkg/reconciler/drive/resources"
 	"go.uber.org/zap"
-	gscalendar "google.golang.org/api/calendar/v3"
+	gsdrive "google.golang.org/api/drive/v3"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -176,7 +176,7 @@ func (r *reconciler) finalize(ctx context.Context, source *sourcesv1alpha1.Drive
 		if err != nil {
 			return err
 		}
-		channel := &gscalendar.Channel{
+		channel := &gsdrive.Channel{
 			Id:         source.Status.WebhookId,
 			ResourceId: source.Status.WebhookResourceId,
 		}
@@ -251,14 +251,14 @@ func (r *reconciler) createWebhook(ctx context.Context, args *webhookArgs) (stri
 	if err != nil {
 		return "", "", err
 	}
-	channel := &gscalendar.Channel{
+	channel := &gsdrive.Channel{
 		Id:      args.id,
 		Token:   args.token,
 		Address: fmt.Sprintf("https://%s", args.domain),
 		Kind:    "api#channel",
 		Type:    "web_hook",
 	}
-	resp, err := svc.Events.Watch("primary", channel).Do()
+	resp, err := svc.Changes.Watch("primary", channel).Do()
 	if err != nil {
 		return "", "", err
 	}
@@ -266,7 +266,7 @@ func (r *reconciler) createWebhook(ctx context.Context, args *webhookArgs) (stri
 	return resp.Id, resp.ResourceId, nil
 }
 
-func (r *reconciler) createDriveService(ctx context.Context, credentials, email string) (*gscalendar.Service, error) {
+func (r *reconciler) createDriveService(ctx context.Context, credentials, email string) (*gsdrive.Service, error) {
 	// Doing this as there is no way to impersonate a particular user drive
 	// using the GOOGLE_APPLICATION_CREDENTIALS env variable.
 	credsFile := fmt.Sprintf("%s/%s", credsMountPath, credentials)
@@ -274,7 +274,7 @@ func (r *reconciler) createDriveService(ctx context.Context, credentials, email 
 	if err != nil {
 		return nil, err
 	}
-	conf, err := google.JWTConfigFromJSON(jsonCredentials, gscalendar.CalendarScope)
+	conf, err := google.JWTConfigFromJSON(jsonCredentials, gsdrive.DriveReadonlyScope)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +282,7 @@ func (r *reconciler) createDriveService(ctx context.Context, credentials, email 
 	conf.Subject = email
 
 	client := conf.Client(ctx)
-	return gscalendar.NewService(ctx, option.WithHTTPClient(client))
+	return gsdrive.NewService(ctx, option.WithHTTPClient(client))
 }
 
 func (r *reconciler) sinkURIFrom(ctx context.Context, source *sourcesv1alpha1.DriveSource) (string, error) {
