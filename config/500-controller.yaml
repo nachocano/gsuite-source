@@ -33,10 +33,10 @@ spec:
         - image: github.com/nachocano/gsuite-source/cmd/manager
           name: manager
           env:
-            - name: SHEETS_RA_IMAGE
-              value: github.com/nachocano/gsuite-source/cmd/sheets_receive_adapter
             - name: CALENDAR_RA_IMAGE
               value: github.com/nachocano/gsuite-source/cmd/calendar_receive_adapter
+            - name: DRIVE_RA_IMAGE
+              value: github.com/nachocano/gsuite-source/cmd/drive_receive_adapter
           volumeMounts:
             - name: gs-source-key
               mountPath: /var/secrets/google
