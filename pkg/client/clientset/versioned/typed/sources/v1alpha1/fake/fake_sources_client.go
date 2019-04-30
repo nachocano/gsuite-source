@@ -31,6 +31,10 @@ func (c *FakeSourcesV1alpha1) CalendarSources(namespace string) v1alpha1.Calenda
 	return &FakeCalendarSources{c, namespace}
 }
 
+func (c *FakeSourcesV1alpha1) DriveSources(namespace string) v1alpha1.DriveSourceInterface {
+	return &FakeDriveSources{c, namespace}
+}
+
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
 func (c *FakeSourcesV1alpha1) RESTClient() rest.Interface {

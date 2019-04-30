@@ -27,6 +27,7 @@ import (
 type SourcesV1alpha1Interface interface {
 	RESTClient() rest.Interface
 	CalendarSourcesGetter
+	DriveSourcesGetter
 }
 
 // SourcesV1alpha1Client is used to interact with features provided by the sources.nachocano.org group.
@@ -36,6 +37,10 @@ type SourcesV1alpha1Client struct {
 
 func (c *SourcesV1alpha1Client) CalendarSources(namespace string) CalendarSourceInterface {
 	return newCalendarSources(c, namespace)
+}
+
+func (c *SourcesV1alpha1Client) DriveSources(namespace string) DriveSourceInterface {
+	return newDriveSources(c, namespace)
 }
 
 // NewForConfig creates a new SourcesV1alpha1Client for the given config.

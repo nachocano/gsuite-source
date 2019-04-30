@@ -25,6 +25,8 @@ import (
 type Interface interface {
 	// CalendarSources returns a CalendarSourceInformer.
 	CalendarSources() CalendarSourceInformer
+	// DriveSources returns a DriveSourceInformer.
+	DriveSources() DriveSourceInformer
 }
 
 type version struct {
@@ -41,4 +43,9 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 // CalendarSources returns a CalendarSourceInformer.
 func (v *version) CalendarSources() CalendarSourceInformer {
 	return &calendarSourceInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+}
+
+// DriveSources returns a DriveSourceInformer.
+func (v *version) DriveSources() DriveSourceInformer {
+	return &driveSourceInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
