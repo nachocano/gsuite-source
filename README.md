@@ -98,6 +98,7 @@ that are packaged with this installation.
 | Name | Status | Support | Description |
 |------|--------|---------|-------------|
 | [Calendar](./samples/calendar/README.md) | Proof of Concept | None | Brings [Google Calendar](https://calendar.google.com/calendar/) events into Knative |
+| [Drive](./samples/drive/README.md) | Proof of Concept | None | Brings [Google Drive](https://drive.google.com/drive/) events into Knative |
 
 
 #### Cleanup
