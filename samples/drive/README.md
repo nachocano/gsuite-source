@@ -120,7 +120,22 @@ kubectl -n default logs drive-event-display-XXXX user-container
 You should see log lines similar to:
 
 ```
-TODO
+☁️  CloudEvent: valid ✅
+Context Attributes,
+  SpecVersion: 0.2
+  Type: org.nachocano.source.gsuite.drive
+  Source: https://www.googleapis.com/drive/v3/changes?alt=json&includeCorpusRemovals=false&includeItemsFromAllDrives=false&includeRemoved=true&includeTeamDriveItems=false&pageSize=100&pageToken=30&prettyPrint=false&restrictToMyDrive=false&spaces=drive&supportsAllDrives=false&supportsTeamDrives=false&alt=json
+  ID: r0RAXpKrtrXii0Dgu56Cx666dnM
+  Time: 2019-04-30T07:29:09.830080957Z
+  ContentType: application/json
+  Extensions:
+    goog: map[resource-id:["r0RAXpKrtrXii0Dgu56Cx666dnM"]]
+Transport Context,
+  URI: /
+  Host: drive-event-display.default.svc.cluster.local
+  Method: POST
+Data,
+  ""
 ```
 
 ### Cleanup

@@ -251,6 +251,14 @@ func (r *reconciler) createWebhook(ctx context.Context, args *webhookArgs) (stri
 	if err != nil {
 		return "", "", err
 	}
+
+	startPageTokenResp, err := svc.Changes.GetStartPageToken().Do()
+	if err != nil {
+		return "", "", err
+	}
+	pageToken := startPageTokenResp.StartPageToken
+	logging.FromContext(ctx).Infof("StartPageToken %q", pageToken)
+
 	channel := &gsdrive.Channel{
 		Id:      args.id,
 		Token:   args.token,
@@ -258,7 +266,7 @@ func (r *reconciler) createWebhook(ctx context.Context, args *webhookArgs) (stri
 		Kind:    "api#channel",
 		Type:    "web_hook",
 	}
-	resp, err := svc.Changes.Watch("primary", channel).Do()
+	resp, err := svc.Changes.Watch(pageToken, channel).Do()
 	if err != nil {
 		return "", "", err
 	}
