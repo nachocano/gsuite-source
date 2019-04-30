@@ -102,7 +102,7 @@ Verify that the `DriveSource` is ready by executing the following command:
 kubectl get drivesources
 ```
 ```
-NAME                     READY   REASON
+NAME                  READY   REASON
 drive-source-sample   True
 ```
 

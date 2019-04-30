@@ -17,7 +17,7 @@ kind: DriveSource
 metadata:
   name: drive-source-sample
 spec:
-  emailAddress: <YOUR EMAIL ADDRESS>
+  emailAddress: icano@nachocano.org
   gcpCredsSecret:
     name: gs-source-key
     key: key.json
